@@ -71,6 +71,12 @@ namespace ze_kit
         }
 
         const auto msg_buffer = memory::allocate(initial_msg_size);
+
+        if (msg_buffer == nullptr)
+        {
+            throw std::bad_alloc();
+        }
+
         unsigned long long msg_size;
 
         if (DECRYPT_SYMMETRIC(msg_buffer, &msg_size, nullptr, buffer.get_buffer(), buffer.get_size(), aead.get_buffer(), aead.get_size(), nonce.get_buffer(), key.get_buffer()) != SUCCESS)
@@ -114,7 +120,28 @@ namespace ze_kit
             throw std::invalid_argument("Invalid arguments were provided");
         }
 
-        return guarded_ptr(nullptr);
+        const size_t initial_msg_size = buffer.get_size();
+
+        if (initial_msg_size < MAC)
+        {
+            return guarded_ptr(nullptr);
+        }
+
+        const auto msg_size = initial_msg_size - MAC;
+        const auto msg_buffer = memory::allocate(msg_size);
+
+        if (msg_buffer == nullptr)
+        {
+            throw std::bad_alloc();
+        }
+
+        if (DECRYPT_ASYMMETRIC(msg_buffer, buffer.get_buffer(), buffer.get_size(), nonce.get_buffer(), public_key.get_buffer(), private_key.get_buffer()) != SUCCESS)
+        {
+            memory::deallocate(msg_buffer, msg_size);
+            return guarded_ptr(nullptr);
+        }
+
+        return guarded_ptr(new data(msg_buffer, msg_size));
     }
 
     guarded_ptr security::build_nonce(const size_t size)
