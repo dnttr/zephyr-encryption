@@ -181,6 +181,6 @@ namespace ze_kit
         guarded_ptr public_key_ptr(new data(public_key, PUBLIC_KEY));
         guarded_ptr private_key_ptr(new data(private_key, PRIVATE_KEY));
 
-        return std::make_pair(public_key_ptr, private_key_ptr);
+        return std::make_pair(std::move(public_key_ptr), std::move(private_key_ptr));
     }
 }

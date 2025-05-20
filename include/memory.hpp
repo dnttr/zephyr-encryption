@@ -10,6 +10,8 @@
 #define MALLOC_ATTR
 #endif
 
+#include "stddef.h"
+
 namespace ze_kit
 {
     class memory

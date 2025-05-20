@@ -37,7 +37,9 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME} STATIC
-        src/library.cpp
+        src/main/library.cpp
+        src/main/memory.cpp
+        src/main/security.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBSODIUM_LIBRARY})
