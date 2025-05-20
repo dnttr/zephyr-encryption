@@ -40,13 +40,13 @@ namespace ze_kit
 
         const size_t initial_msg_size = buffer.get_size() + AEAD;
         const auto msg_buffer = memory::allocate(initial_msg_size);
-        unsigned long long msg_size;
 
         if (msg_buffer == nullptr)
         {
             throw std::bad_alloc();
         }
 
+        unsigned long long msg_size;
         if (ENCRYPT_SYMMETRIC(msg_buffer, &msg_size, buffer.get_buffer(), buffer.get_size(), aead.get_buffer(), aead.get_size(), nullptr, nonce.get_buffer(), key.get_buffer()) != SUCCESS)
         {
             memory::deallocate(msg_buffer, initial_msg_size);
@@ -77,19 +77,43 @@ namespace ze_kit
         {
             memory::deallocate(msg_buffer, initial_msg_size);
 
-            return guarded_ptr(nullptr); // it's either invalid arguments or the message was tampered with
+            return guarded_ptr(nullptr);
         }
 
         return guarded_ptr(new data(msg_buffer, msg_size));
     }
 
-    guarded_ptr security::encrypt_asymmetric(const data &key, const data &buffer, const data &nonce)
+    guarded_ptr security::encrypt_asymmetric(const data &public_key, const data &private_key, const data &buffer, const data &nonce)
     {
-        return guarded_ptr(nullptr);
+        if (util::is_data_valid(public_key, private_key, buffer, nonce))
+        {
+            throw std::invalid_argument("Invalid arguments were provided");
+        }
+
+        const size_t msg_size = buffer.get_size() + MAC;
+        const auto msg_buffer = memory::allocate(msg_size);
+
+        if (msg_buffer == nullptr)
+        {
+            throw std::bad_alloc();
+        }
+
+        if (ENCRYPT_ASYMMETRIC(msg_buffer, buffer.get_buffer(), buffer.get_size(), nonce.get_buffer(), public_key.get_buffer(), private_key.get_buffer()) != SUCCESS)
+        {
+            memory::deallocate(msg_buffer, msg_size);
+            throw std::exception();
+        }
+
+        return guarded_ptr(new data(msg_buffer, msg_size));
     }
 
-    guarded_ptr security::decrypt_asymmetric(const data &key, const data &buffer, const data &nonce)
+    guarded_ptr security::decrypt_asymmetric(const data &public_key, const data &private_key, const data &buffer, const data &nonce)
     {
+        if (!util::is_data_valid(public_key, private_key, buffer, nonce))
+        {
+            throw std::invalid_argument("Invalid arguments were provided");
+        }
+
         return guarded_ptr(nullptr);
     }
 

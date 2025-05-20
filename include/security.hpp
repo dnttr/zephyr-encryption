@@ -15,8 +15,8 @@ namespace ze_kit
         static guarded_ptr encrypt_symmetric(const data &key, const data &aead, const data &buffer, const data &nonce);
         static guarded_ptr decrypt_symmetric(const data &key, const data &aead, const data &buffer, const data &nonce);
 
-        static guarded_ptr encrypt_asymmetric(const data &key, const data &buffer, const data &nonce);
-        static guarded_ptr decrypt_asymmetric(const data &key, const data &buffer, const data &nonce);
+        static guarded_ptr encrypt_asymmetric(const data &public_key, const data &private_key, const data &buffer, const data &nonce);
+        static guarded_ptr decrypt_asymmetric(const data &public_key, const data &private_key, const data &buffer, const data &nonce);
 
         static guarded_ptr build_nonce_symmetric();
         static guarded_ptr build_nonce_asymmetric();
