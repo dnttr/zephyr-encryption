@@ -11,66 +11,112 @@
 #define SYMMETRIC_NONCE crypto_aead_xchacha20poly1305_ietf_NPUBBYTES
 #define ASYMMETRIC_NONCE crypto_box_curve25519xchacha20poly1305_NONCEBYTES
 
+#define AEAD crypto_aead_xchacha20poly1305_ietf_ABYTES
+#define MAC crypto_box_curve25519xchacha20poly1305_MACBYTES
+
+// It takes too long to realize which one is the symmetric one and which one is the asymmetric one, so just for my sanity, ill define them here
+#define ENCRYPT_SYMMETRIC crypto_aead_xchacha20poly1305_ietf_encrypt
+#define ENCRYPT_ASYMMETRIC crypto_box_curve25519xchacha20poly1305_easy
+
+#define DECRYPT_SYMMETRIC crypto_aead_xchacha20poly1305_ietf_decrypt
+#define DECRYPT_ASYMMETRIC crypto_box_curve25519xchacha20poly1305_open_easy
+
 #include "security.hpp"
 
 #include <sodium.h>
+#include <stdexcept>
 
-ze_kit::guarded_ptr ze_kit::security::encrypt_symmetric(const data &key, const data &aead, const data &buffer, const data &nonce)
+#include "library.hpp"
+
+namespace ze_kit
 {
-    return guarded_ptr(nullptr);
-}
+    guarded_ptr security::encrypt_symmetric(const data &key, const data &aead, const data &buffer, const data &nonce)
+    {
+        if (key.get_buffer() == nullptr || key.get_size() == 0)
+        {
+            throw std::invalid_argument("Invalid key");
+        }
 
-ze_kit::guarded_ptr ze_kit::security::decrypt_symmetric(const data &key, const data &aead, const data &buffer, const data &nonce)
-{
-    return guarded_ptr(nullptr);
-}
+        if (buffer.get_buffer() == nullptr || buffer.get_size() == 0)
+        {
+            throw std::invalid_argument("Invalid buffer");
+        }
 
-ze_kit::guarded_ptr ze_kit::security::encrypt_asymmetric(const data &key, const data &buffer, const data &nonce)
-{
-    return guarded_ptr(nullptr);
-}
+        if (nonce.get_buffer() == nullptr || nonce.get_size() == 0)
+        {
+            throw std::invalid_argument("Invalid nonce");
+        }
 
-ze_kit::guarded_ptr ze_kit::security::decrypt_asymmetric(const data &key, const data &buffer, const data &nonce)
-{
-    return guarded_ptr(nullptr);
-}
+        const size_t initial_msg_size = buffer.get_size() + AEAD;
+        const auto msg_buffer = memory::allocate(initial_msg_size);
+        unsigned long long msg_size;
 
-ze_kit::guarded_ptr ze_kit::security::build_nonce(const size_t size)
-{
-    const auto buffer = memory::allocate(size);
-    randombytes(buffer, size);
+        if (msg_buffer == nullptr)
+        {
+            throw std::bad_alloc();
+        }
 
-    return guarded_ptr(new data(buffer, size));
-}
+        if (ENCRYPT_SYMMETRIC(msg_buffer, &msg_size, buffer.get_buffer(), buffer.get_size(), aead.get_buffer(), aead.get_size(), nullptr, nonce.get_buffer(), key.get_buffer()) != SUCCESS)
+        {
+            memory::deallocate(msg_buffer, initial_msg_size);
+            throw std::exception();
+        }
 
-ze_kit::guarded_ptr ze_kit::security::build_nonce_symmetric()
-{
-    return build_nonce(SYMMETRIC_NONCE);
-}
+        return guarded_ptr(new data(msg_buffer, msg_size));
+    }
 
-ze_kit::guarded_ptr ze_kit::security::build_nonce_asymmetric()
-{
-    return build_nonce(ASYMMETRIC_NONCE);
-}
+    guarded_ptr security::decrypt_symmetric(const data &key, const data &aead, const data &buffer, const data &nonce)
+    {
+        return guarded_ptr(nullptr);
+    }
 
-ze_kit::guarded_ptr ze_kit::security::build_key_symmetric()
-{
-    const auto key = memory::allocate(SYMMETRIC_KEY);
+    guarded_ptr security::encrypt_asymmetric(const data &key, const data &buffer, const data &nonce)
+    {
+        return guarded_ptr(nullptr);
+    }
 
-    crypto_aead_xchacha20poly1305_ietf_keygen(key);
+    guarded_ptr security::decrypt_asymmetric(const data &key, const data &buffer, const data &nonce)
+    {
+        return guarded_ptr(nullptr);
+    }
 
-    return guarded_ptr(new data(key, SYMMETRIC_KEY));
-}
+    guarded_ptr security::build_nonce(const size_t size)
+    {
+        const auto buffer = memory::allocate(size);
+        randombytes(buffer, size);
 
-std::pair<ze_kit::guarded_ptr, ze_kit::guarded_ptr> ze_kit::security::build_key_asymmetric()
-{
-    const auto public_key = memory::allocate(PUBLIC_KEY);
-    const auto private_key = memory::allocate(PRIVATE_KEY);
+        return guarded_ptr(new data(buffer, size));
+    }
 
-    crypto_box_curve25519xchacha20poly1305_keypair(public_key, private_key);
+    guarded_ptr security::build_nonce_symmetric()
+    {
+        return build_nonce(SYMMETRIC_NONCE);
+    }
 
-    guarded_ptr public_key_ptr(new data(public_key, PUBLIC_KEY));
-    guarded_ptr private_key_ptr(new data(private_key, PRIVATE_KEY));
+    guarded_ptr security::build_nonce_asymmetric()
+    {
+        return build_nonce(ASYMMETRIC_NONCE);
+    }
 
-    return std::make_pair(public_key_ptr, private_key_ptr);
+    guarded_ptr security::build_key_symmetric()
+    {
+        const auto key = memory::allocate(SYMMETRIC_KEY);
+
+        crypto_aead_xchacha20poly1305_ietf_keygen(key);
+
+        return guarded_ptr(new data(key, SYMMETRIC_KEY));
+    }
+
+    std::pair<guarded_ptr, guarded_ptr> security::build_key_asymmetric()
+    {
+        const auto public_key = memory::allocate(PUBLIC_KEY);
+        const auto private_key = memory::allocate(PRIVATE_KEY);
+
+        crypto_box_curve25519xchacha20poly1305_keypair(public_key, private_key);
+
+        guarded_ptr public_key_ptr(new data(public_key, PUBLIC_KEY));
+        guarded_ptr private_key_ptr(new data(private_key, PRIVATE_KEY));
+
+        return std::make_pair(public_key_ptr, private_key_ptr);
+    }
 }
