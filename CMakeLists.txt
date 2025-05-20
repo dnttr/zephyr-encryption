@@ -13,6 +13,8 @@ elseif(MSVC)
     add_compile_options(/W4)
 endif()
 
+#------------------------ Library ------------------------#
+
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
 )
@@ -23,10 +25,9 @@ add_library(${PROJECT_NAME} STATIC
         src/main/security.cpp
 )
 
-prepare_catch2(catch2_lib)
 prepare_sodium(sodium_lib)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE catch2_lib sodium_lib)
+target_link_libraries(${PROJECT_NAME} PRIVATE sodium_lib)
 
 set_target_properties(${PROJECT_NAME}
         PROPERTIES
@@ -42,3 +43,32 @@ install(TARGETS ${PROJECT_NAME}
 install(DIRECTORY include/
         DESTINATION include
 )
+
+#------------------------ Tests ------------------------#
+
+prepare_catch2(catch2_lib)
+
+enable_testing()
+
+file(GLOB_RECURSE TEST_SOURCES "src/test/*.cpp")
+message(STATUS "Found test sources: ${TEST_SOURCES}")
+
+add_executable(${PROJECT_NAME}-tests ${TEST_SOURCES})
+
+target_include_directories(${PROJECT_NAME}-tests PRIVATE
+        ${PROJECT_SOURCE_DIR}/include
+        sodium_lib
+)
+
+target_link_libraries(${PROJECT_NAME}-tests PRIVATE
+        ${PROJECT_NAME}
+        catch2_lib
+        sodium_lib
+)
+
+set_target_properties(${PROJECT_NAME}-tests
+        PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
+catch_discover_tests(${PROJECT_NAME}-tests)

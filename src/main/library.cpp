@@ -6,6 +6,8 @@
 
 #include <sodium/core.h>
 
+bool ze_kit::library::initialized = false;
+
 bool ze_kit::library::initialize()
 {
     if (initialized)
@@ -18,5 +20,6 @@ bool ze_kit::library::initialize()
         return FAILURE;
     }
 
+    initialized = true;
     return SUCCESS;
 }
