@@ -10,11 +10,13 @@ namespace ze_kit
 {
     class security
     {
-        static guarded_ptr encrypt_symmetric(const data &aead, const data &buffer, const data &nonce);
-        static guarded_ptr decrypt_symmetric(const data &aead, const data &buffer, const data &nonce);
+        static guarded_ptr build_nonce(size_t size);
+    public:
+        static guarded_ptr encrypt_symmetric(const data &key, const data &aead, const data &buffer, const data &nonce);
+        static guarded_ptr decrypt_symmetric(const data &key, const data &aead, const data &buffer, const data &nonce);
 
-        static guarded_ptr encrypt_asymmetric(const data &buffer, const data &nonce);
-        static guarded_ptr decrypt_asymmetric(const data &buffer, const data &nonce);
+        static guarded_ptr encrypt_asymmetric(const data &key, const data &buffer, const data &nonce);
+        static guarded_ptr decrypt_asymmetric(const data &key, const data &buffer, const data &nonce);
 
         static guarded_ptr build_nonce_symmetric();
         static guarded_ptr build_nonce_asymmetric();
