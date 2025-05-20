@@ -10,7 +10,6 @@ namespace ze_kit
 {
     class security
     {
-        //todo: implement keys
         static guarded_ptr encrypt_symmetric(const data &aead, const data &buffer, const data &nonce);
         static guarded_ptr decrypt_symmetric(const data &aead, const data &buffer, const data &nonce);
 
@@ -21,6 +20,7 @@ namespace ze_kit
         static guarded_ptr build_nonce_asymmetric();
 
         static guarded_ptr build_key_symmetric();
-        static guarded_ptr build_key_asymmetric();
+
+        static std::pair<guarded_ptr, guarded_ptr> build_key_asymmetric();
     };
 }
