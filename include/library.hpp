@@ -4,13 +4,14 @@
 
 #pragma once
 
-#define OK = 0
-#define ERROR = 1
-
 namespace ze_kit
 {
+    #define SUCCESS 0
+    #define FAILURE 1
+
     class library
     {
+        static bool initialized;
     public:
         static bool initialize();
     };

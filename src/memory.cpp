@@ -6,8 +6,7 @@
 
 #include <cstring>
 #include <new>
-
-#include "sodium.h"
+#include <sodium.h>
 
 namespace ze_kit
 {
