@@ -27,24 +27,15 @@
 #include <stdexcept>
 
 #include "library.hpp"
+#include "util.hpp"
 
 namespace ze_kit
 {
     guarded_ptr security::encrypt_symmetric(const data &key, const data &aead, const data &buffer, const data &nonce)
     {
-        if (key.get_buffer() == nullptr || key.get_size() == 0)
+        if (!util::is_data_valid(key, buffer, nonce))
         {
-            throw std::invalid_argument("Invalid key");
-        }
-
-        if (buffer.get_buffer() == nullptr || buffer.get_size() == 0)
-        {
-            throw std::invalid_argument("Invalid buffer");
-        }
-
-        if (nonce.get_buffer() == nullptr || nonce.get_size() == 0)
-        {
-            throw std::invalid_argument("Invalid nonce");
+            throw std::invalid_argument("Invalid arguments were provided");
         }
 
         const size_t initial_msg_size = buffer.get_size() + AEAD;
@@ -67,7 +58,29 @@ namespace ze_kit
 
     guarded_ptr security::decrypt_symmetric(const data &key, const data &aead, const data &buffer, const data &nonce)
     {
-        return guarded_ptr(nullptr);
+        if (!util::is_data_valid(key, buffer, nonce))
+        {
+            throw std::invalid_argument("Invalid arguments were provided");
+        }
+
+        const size_t initial_msg_size = buffer.get_size();
+
+        if (initial_msg_size < AEAD)
+        {
+            return guarded_ptr(nullptr);
+        }
+
+        const auto msg_buffer = memory::allocate(initial_msg_size);
+        unsigned long long msg_size;
+
+        if (DECRYPT_SYMMETRIC(msg_buffer, &msg_size, nullptr, buffer.get_buffer(), buffer.get_size(), aead.get_buffer(), aead.get_size(), nonce.get_buffer(), key.get_buffer()) != SUCCESS)
+        {
+            memory::deallocate(msg_buffer, initial_msg_size);
+
+            return guarded_ptr(nullptr); // it's either invalid arguments or the message was tampered with
+        }
+
+        return guarded_ptr(new data(msg_buffer, msg_size));
     }
 
     guarded_ptr security::encrypt_asymmetric(const data &key, const data &buffer, const data &nonce)
