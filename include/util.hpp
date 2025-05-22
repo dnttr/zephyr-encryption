@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <iostream>
+
 #include "data.hpp"
 
 namespace ze_kit
@@ -15,21 +17,26 @@ namespace ze_kit
         {
             if (public_key.get_buffer() == nullptr || public_key.get_size() == 0)
             {
+                std::cout << "xd1" << std::endl;
                 return false;
             }
 
             if (private_key.get_buffer() == nullptr || private_key.get_size() == 0)
             {
+
+                std::cout << "xd2" << std::endl;
                 return false;
             }
 
             if (buffer.get_buffer() == nullptr || buffer.get_size() == 0)
             {
+                std::cout << "xd3" << std::endl;
                 return false;
             }
 
             if (nonce.get_buffer() == nullptr || nonce.get_size() == 0)
             {
+                std::cout << "xd4" << std::endl;
                 return false;
             }
 

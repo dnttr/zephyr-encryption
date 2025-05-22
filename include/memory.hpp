@@ -23,7 +23,7 @@ namespace ze_kit
         static void deallocate(unsigned char *src , size_t size);
 
         [[nodiscard]] MALLOC
-        static unsigned char *copy(const unsigned char *src, size_t size); //int8_t?
+        static unsigned char *copy(unsigned char *src, size_t size); //int8_t?
 
         [[nodiscard]]
         static bool compare(const void* ptr1, const void* ptr2, size_t size);

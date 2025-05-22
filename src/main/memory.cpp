@@ -35,7 +35,7 @@ namespace ze_kit
         src = nullptr;
     }
 
-    unsigned char *memory::copy(const unsigned char *src, const size_t size)
+    unsigned char *memory::copy(unsigned char *src, const size_t size)
     {
         if (src == nullptr)
         {
@@ -45,7 +45,7 @@ namespace ze_kit
         const auto mem = allocate(size);
         memcpy(mem, src, size);
 
-        sodium_memzero(mem, size);
+        sodium_memzero(src, size);
 
         return mem;
     }

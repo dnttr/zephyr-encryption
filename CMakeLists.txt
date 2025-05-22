@@ -50,13 +50,14 @@ prepare_catch2(catch2_lib)
 
 enable_testing()
 
-file(GLOB_RECURSE TEST_SOURCES "src/test/*.cpp")
+file(GLOB_RECURSE TEST_SOURCES "src/test/src/*.cpp")
 message(STATUS "Found test sources: ${TEST_SOURCES}")
 
 add_executable(${PROJECT_NAME}-tests ${TEST_SOURCES})
 
 target_include_directories(${PROJECT_NAME}-tests PRIVATE
         ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/src/test/include
         sodium_lib
 )
 

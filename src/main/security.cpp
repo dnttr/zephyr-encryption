@@ -91,9 +91,9 @@ namespace ze_kit
 
     guarded_ptr security::encrypt_asymmetric(const data &public_key, const data &private_key, const data &buffer, const data &nonce)
     {
-        if (util::is_data_valid(public_key, private_key, buffer, nonce))
+        if (!util::is_data_valid(public_key, private_key, buffer, nonce))
         {
-            throw std::invalid_argument("Invalid arguments were provided");
+            throw std::invalid_argument("Invalid arguments were provided ");
         }
 
         const size_t msg_size = buffer.get_size() + MAC;
