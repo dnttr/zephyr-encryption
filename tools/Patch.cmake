@@ -1,11 +1,12 @@
 function(patch_libs)
     if(CMAKE_BUILD_TYPE STREQUAL "Release")
         set(TARGET_PATH "${CMAKE_CURRENT_BINARY_DIR}/lib/libze.dylib")
+        message(STATUS "Target path for patching: ${TARGET_PATH}")
         set(LIBSODIUM_DIR "${PROJECT_SOURCE_DIR}/external")
         set(LIBSODIUM_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/lib")
 
-        set(OLD_LIBSODIUM_PATH "${LIBSODIUM_DIR}/libsodium.26.dylib")
-        set(NEW_LIBSODIUM_PATH "@rpath/libsodium.26.dylib")
+        set(OLD_LIBSODIUM_PATH "${LIBSODIUM_DIR}/libsodium.dylib")
+        set(NEW_LIBSODIUM_PATH "@rpath/libsodium.dylib")
 
         set(LIBSODIUM_26_PATH "${LIBSODIUM_DIR}/libsodium.26.dylib")
         set(LIBSODIUM_PATH "${LIBSODIUM_DIR}/libsodium.dylib")
@@ -21,6 +22,7 @@ function(patch_libs)
         )
 
         # Patch libze to use @rpath/libsodium.26.dylib
+        message(STATUS ${OLD_LIBSODIUM_PATH})
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND install_name_tool -change ${OLD_LIBSODIUM_PATH} ${NEW_LIBSODIUM_PATH} ${TARGET_PATH}
                 COMMENT "Patched libsodium dylib path in libze.dylib"
