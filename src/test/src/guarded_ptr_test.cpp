@@ -2,11 +2,11 @@
 // Created by Damian Netter on 20/05/2025.
 //
 
-#include "guarded_ptr.hpp"
+#include "ZEKit/guarded_ptr.hpp"
 
-#include "data.hpp"
-#include "memory.hpp"
 #include "catch2/catch_test_macros.hpp"
+#include "ZEKit/data.hpp"
+#include "ZEKit/memory.hpp"
 
 TEST_CASE("Construction and destruction", "[guarded_ptr]")
 {
