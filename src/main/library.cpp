@@ -2,7 +2,7 @@
 // Created by Damian Netter on 19/05/2025.
 //
 
-#include "library.hpp"
+#include "ZEKit/library.hpp"
 
 #include <sodium/core.h>
 

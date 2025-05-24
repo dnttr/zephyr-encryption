@@ -21,13 +21,13 @@
 #define DECRYPT_SYMMETRIC crypto_aead_xchacha20poly1305_ietf_decrypt
 #define DECRYPT_ASYMMETRIC crypto_box_curve25519xchacha20poly1305_open_easy
 
-#include "security.hpp"
+#include "ZEKit/security.hpp"
 
 #include <sodium.h>
 #include <stdexcept>
 
-#include "library.hpp"
-#include "util.hpp"
+#include "ZEKit/library.hpp"
+#include "ZEKit/util.hpp"
 
 namespace ze_kit
 {

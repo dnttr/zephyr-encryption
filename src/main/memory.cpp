@@ -2,7 +2,7 @@
 // Created by Damian Netter on 20/05/2025.
 //
 
-#include "memory.hpp"
+#include "ZEKit/memory.hpp"
 
 #include <cstring>
 #include <new>

@@ -7,27 +7,27 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(${CMAKE_SOURCE_DIR}/tools/Dependencies.cmake)
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    add_compile_options(-Wall -Wextra -Wpedantic)
-elseif(MSVC)
-    add_compile_options(/W4)
-endif()
-
 #------------------------ Library ------------------------#
 
-include_directories(
-        ${PROJECT_SOURCE_DIR}/include
-)
+set(znb_lib "${PROJECT_SOURCE_DIR}/external/libznb.dylib")
 
-add_library(${PROJECT_NAME} STATIC
+set(SOURCE_FILES
         src/main/library.cpp
         src/main/memory.cpp
         src/main/security.cpp
 )
 
+include_directories(
+        ${PROJECT_SOURCE_DIR}/include
+)
+
+add_library(${PROJECT_NAME} SHARED
+        ${SOURCE_FILES}
+)
+
 prepare_sodium(sodium_lib)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE sodium_lib)
+target_link_libraries(${PROJECT_NAME} PRIVATE sodium_lib ${znb_lib})
 
 set_target_properties(${PROJECT_NAME}
         PROPERTIES
@@ -44,6 +44,14 @@ install(DIRECTORY include/
         DESTINATION include
 )
 
+set_target_properties(${PROJECT_NAME} PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+        OUTPUT_NAME "ze"
+        VERSION 1.0.0
+        SOVERSION 1
+        INSTALL_RPATH "@loader_path"
+)
+
 #------------------------ Tests ------------------------#
 
 prepare_catch2(catch2_lib)
@@ -56,7 +64,7 @@ message(STATUS "Found test sources: ${TEST_SOURCES}")
 add_executable(${PROJECT_NAME}-tests ${TEST_SOURCES})
 
 target_include_directories(${PROJECT_NAME}-tests PRIVATE
-        ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/include/
         ${PROJECT_SOURCE_DIR}/src/test/include
         sodium_lib
 )
@@ -65,6 +73,7 @@ target_link_libraries(${PROJECT_NAME}-tests PRIVATE
         ${PROJECT_NAME}
         catch2_lib
         sodium_lib
+        ${znb_lib}
 )
 
 set_target_properties(${PROJECT_NAME}-tests
