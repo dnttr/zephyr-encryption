@@ -22,40 +22,29 @@ function(prepare_sodium TARGET_NAME)
         set(TARGET_NAME sodium)
     endif()
 
-    set(_sodium_root "${SODIUM_ROOT}" CACHE PATH "Optional libsodium root directory" FORCE)
+    set(_lib "${PROJECT_SOURCE_DIR}/external/libsodium.dylib")
+    set(_include_dir "${PROJECT_SOURCE_DIR}/external/include")
 
-    find_path(_include_dir sodium.h
-            PATHS
-            "${_sodium_root}/include"
-            /usr/include
-            /usr/local/include
-            /opt/local/include
-    )
+    if(EXISTS "${_lib}" AND EXISTS "${_include_dir}/sodium.h")
+        message(STATUS "prepare_sodium: Using existing libsodium.dylib and headers")
 
-    find_library(_lib sodium
-            PATHS
-            "${_sodium_root}/lib"
-            /usr/lib
-            /usr/local/lib
-            /opt/local/lib
-    )
-
-    if(NOT _include_dir OR NOT _lib)
-        message(STATUS "prepare_sodium: libsodium not found, downloading and building with FetchContent...")
+    else()
+        message(STATUS "prepare_sodium: Prebuilt libsodium not found, falling back to FetchContent...")
 
         include(FetchContent)
         FetchContent_Declare(
                 sodium
-                URL https://download.libsodium.org/libsodium/releases/libsodium-1.0.19.tar.gz
-                SOURCE_DIR ${CMAKE_BINARY_DIR}/external/libsodium-src
+                URL https://download.libsodium.org/libsodium/releases/libsodium-1.0.20.tar.gz
+                SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/libsodium-src
+                DOWNLOAD_EXTRACT_TIMESTAMP TRUE
         )
         FetchContent_GetProperties(sodium)
-        if(NOT sodium_POPULATED)
-            FetchContent_Populate(sodium)
+        if(NOT sodium_AVAILABLE)
+            FetchContent_MakeAvailable(sodium)
 
             execute_process(
-                    COMMAND ./configure --prefix=${CMAKE_BINARY_DIR}/external/libsodium-install
-                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/external/libsodium-src
+                    COMMAND ./configure --prefix=${PROJECT_SOURCE_DIR}/external/libsodium-install
+                    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/external/libsodium-src
                     RESULT_VARIABLE conf_result
                     OUTPUT_QUIET ERROR_QUIET
             )
@@ -65,7 +54,7 @@ function(prepare_sodium TARGET_NAME)
 
             execute_process(
                     COMMAND make
-                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/external/libsodium-src
+                    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/external/libsodium-src
                     RESULT_VARIABLE build_result
                     OUTPUT_QUIET ERROR_QUIET
             )
@@ -75,17 +64,28 @@ function(prepare_sodium TARGET_NAME)
 
             execute_process(
                     COMMAND make install
-                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/external/libsodium-src
+                    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/external/libsodium-src
                     RESULT_VARIABLE install_result
                     OUTPUT_QUIET ERROR_QUIET
             )
             if(NOT install_result EQUAL 0)
                 message(FATAL_ERROR "prepare_sodium: Failed to install libsodium")
             endif()
+
+            file(GLOB libs "${PROJECT_SOURCE_DIR}/external/libsodium-install/lib/libsodium.*")
+
+            foreach(lib ${libs})
+                file(COPY ${lib} DESTINATION "${PROJECT_SOURCE_DIR}/external")
+            endforeach()
         endif()
 
-        set(_include_dir "${CMAKE_BINARY_DIR}/external/libsodium-install/include")
-        set(_lib "${CMAKE_BINARY_DIR}/external/libsodium-install/lib/libsodium.a")
+        set(_include_dir "${PROJECT_SOURCE_DIR}/external/include")
+        # Prefer .dylib if available, fallback to .a
+        if(EXISTS "${PROJECT_SOURCE_DIR}/external/libsodium.dylib")
+            set(_lib "${PROJECT_SOURCE_DIR}/external/libsodium.dylib")
+        else()
+            set(_lib "${PROJECT_SOURCE_DIR}/external/libsodium.a")
+        endif()
     endif()
 
     if(TARGET ${TARGET_NAME})

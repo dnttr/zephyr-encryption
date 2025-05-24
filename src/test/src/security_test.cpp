@@ -2,12 +2,12 @@
 // Created by Damian Netter on 22/05/2025.
 //
 
-#include "security.hpp"
+#include "ZEKit/security.hpp"
 
 #include <iostream>
 
-#include "memory.hpp"
 #include "setup.hpp"
+#include "ZEKit/memory.hpp"
 
 void generate_str(const char *message, unsigned char **buffer, size_t *buffer_len)
 {

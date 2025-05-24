@@ -9,8 +9,6 @@ include(${CMAKE_SOURCE_DIR}/tools/Dependencies.cmake)
 
 #------------------------ Library ------------------------#
 
-set(znb_lib "${PROJECT_SOURCE_DIR}/external/libznb.dylib")
-
 set(SOURCE_FILES
         src/main/library.cpp
         src/main/memory.cpp
@@ -27,7 +25,7 @@ add_library(${PROJECT_NAME} SHARED
 
 prepare_sodium(sodium_lib)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE sodium_lib ${znb_lib})
+target_link_libraries(${PROJECT_NAME} PRIVATE sodium_lib)
 
 set_target_properties(${PROJECT_NAME}
         PROPERTIES
@@ -47,9 +45,30 @@ install(DIRECTORY include/
 set_target_properties(${PROJECT_NAME} PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
         OUTPUT_NAME "ze"
-        VERSION 1.0.0
-        SOVERSION 1
         INSTALL_RPATH "@loader_path"
+)
+
+set(TARGET_PATH "${CMAKE_CURRENT_BINARY_DIR}/lib/libze.dylib")
+set(LIBSODIUM_DIR "${PROJECT_SOURCE_DIR}/external")
+set(OLD_LIBSODIUM_PATH "${LIBSODIUM_DIR}/libsodium.26.dylib")
+set(NEW_LIBSODIUM_PATH "@rpath/libsodium.26.dylib")
+
+set(LIBSODIUM_26_PATH "${LIBSODIUM_DIR}/libsodium.26.dylib")
+set(LIBSODIUM_PATH "${LIBSODIUM_DIR}/libsodium.dylib")
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND install_name_tool -change ${OLD_LIBSODIUM_PATH} ${NEW_LIBSODIUM_PATH} ${TARGET_PATH}
+        COMMENT "Patched libsodium dylib path in libze.dylib"
+)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND install_name_tool -id @rpath/libsodium.26.dylib ${LIBSODIUM_26_PATH}
+        COMMENT "Set install_name for libsodium.26.dylib to @rpath/libsodium.26.dylib"
+)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND install_name_tool -id @rpath/libsodium.dylib ${LIBSODIUM_PATH}
+        COMMENT "Set install_name for libsodium.dylib to @rpath/libsodium.dylib"
 )
 
 #------------------------ Tests ------------------------#

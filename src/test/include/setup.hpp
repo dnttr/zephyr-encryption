@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "library.hpp"
 #include "catch2/catch_all.hpp"
+#include "ZEKit/library.hpp"
 
 class setup {
 public:
