@@ -25,8 +25,10 @@ add_library(${PROJECT_NAME} SHARED
 )
 
 prepare_sodium(sodium_lib)
+prepare_znb(znb_lib)
+_prepare_jvm_toolset()
 
-target_link_libraries(${PROJECT_NAME} PRIVATE sodium_lib)
+target_link_libraries(${PROJECT_NAME} PRIVATE sodium_lib znb_lib)
 
 set_target_properties(${PROJECT_NAME}
         PROPERTIES
