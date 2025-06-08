@@ -17,13 +17,13 @@ namespace ze_kit
 
         static jint close_session(JNIEnv *jni, jobject object, jlong uuid);
 
-        static jbyteArray encrypt_symmetric(JNIEnv* jni, jobject object, jlong uuid, const jbyteArray &data, const jbyteArray &aead);
+        static jbyteArray encrypt_symmetric(JNIEnv* jni, jobject object, jlong uuid, jbyteArray data, jbyteArray aead);
 
-        static jbyteArray decrypt_symmetric(JNIEnv* jni, jobject object, jlong uuid, const jbyteArray &encrypted_data, const jbyteArray &aead);
+        static jbyteArray decrypt_symmetric(JNIEnv* jni, jobject object, jlong uuid, jbyteArray encrypted_data, jbyteArray aead);
 
-        static jbyteArray encrypt_asymmetric(JNIEnv* jni, jobject object, jlong uuid, const jbyteArray &data);
+        static jbyteArray encrypt_asymmetric(JNIEnv* jni, jobject object, jlong uuid, jbyteArray data);
 
-        static jbyteArray decrypt_asymmetric(JNIEnv* jni, jobject object, jlong uuid, const jbyteArray &encrypted_data);
+        static jbyteArray decrypt_asymmetric(JNIEnv* jni, jobject object, jlong uuid, jbyteArray encrypted_data);
 
         static void build_nonce(JNIEnv* jni, jobject object, jlong uuid, jint mode);
 
