@@ -79,7 +79,7 @@ namespace ze_kit
         SESSION_AVAILABLE(uuid);
         debug_print("[ZE] Encrypting data (SYMMETRIC) with UUID: " + std::to_string(uuid));
 
-        if (data == nullptr || aead == nullptr)
+        if (data == nullptr)
         {
             debug_print_cerr("[ZE] Provided data is null for session: " + std::to_string(uuid));
             return nullptr;
@@ -133,7 +133,7 @@ namespace ze_kit
 
         debug_print("[ZE] Decrypting data (SYMMETRIC) with UUID: " + std::to_string(uuid));
 
-        if (encrypted_data == nullptr || aead == nullptr)
+        if (encrypted_data == nullptr)
         {
             debug_print_cerr("[ZE] Provided data is null for session: " + std::to_string(uuid));
             return nullptr;
