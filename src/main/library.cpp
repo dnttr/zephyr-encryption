@@ -4,8 +4,11 @@
 
 #include "ZEKit/library.hpp"
 
-#include <cstdio>
+#include "ZNBKit/debug.hpp"
+
 #include <sodium/core.h>
+
+std::unordered_map<uint64_t, ze_kit::session *> ze_kit::library::sessions;
 
 bool ze_kit::library::initialized = false;
 
@@ -18,11 +21,11 @@ bool ze_kit::library::initialize()
 
     if (sodium_init() != SUCCESS)
     {
-        printf("Failed to initialize libsodium");
+        debug_print_cerr("[ZE] Failed to initialize libsodium");
         return FAILURE;
     }
 
-    printf("Successfully initialized libsodium\n");
+    debug_print("[ZE] Successfully initialized libsodium");
 
     initialized = true;
     return SUCCESS;

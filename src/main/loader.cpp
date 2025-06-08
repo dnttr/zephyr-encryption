@@ -12,12 +12,12 @@
 #include "ZNBKit/vm_management.hpp"
 
 const std::unordered_multimap<std::string, znb_kit::jni_bridge_reference> ze_kit::loader::methods = {
-    {"ffi_zm_open_session", znb_kit::jni_bridge_reference(&bridge::open_session, {"long"})},
+    {"ffi_zm_open_session", znb_kit::jni_bridge_reference(&bridge::open_session, {})},
     {"ffi_zm_close_session", znb_kit::jni_bridge_reference(&bridge::close_session, {"long"})},
-    {"ffi_ze_encrypt_symmetric", znb_kit::jni_bridge_reference(&bridge::encrypt_symmetric, {"long", "byte[]", "byte[]", "byte[]"})},
-    {"ffi_ze_decrypt_symmetric", znb_kit::jni_bridge_reference(&bridge::decrypt_symmetric, {"long", "byte[]", "byte[]", "byte[]"})},
-    {"ffi_ze_encrypt_asymmetric", znb_kit::jni_bridge_reference(&bridge::encrypt_asymmetric, {"long", "byte[]", "byte[]"})},
-    {"ffi_ze_decrypt_asymmetric", znb_kit::jni_bridge_reference(&bridge::decrypt_asymmetric, {"long", "byte[]", "byte[]"})},
+    {"ffi_ze_encrypt_symmetric", znb_kit::jni_bridge_reference(&bridge::encrypt_symmetric, {"long", "byte[]", "byte[]"})},
+    {"ffi_ze_decrypt_symmetric", znb_kit::jni_bridge_reference(&bridge::decrypt_symmetric, {"long", "byte[]", "byte[]"})},
+    {"ffi_ze_encrypt_asymmetric", znb_kit::jni_bridge_reference(&bridge::encrypt_asymmetric, {"long", "byte[]"})},
+    {"ffi_ze_decrypt_asymmetric", znb_kit::jni_bridge_reference(&bridge::decrypt_asymmetric, {"long", "byte[]"})},
     {"ffi_ze_nonce", znb_kit::jni_bridge_reference(&bridge::build_nonce, {"long", "int"})},
     {"ffi_ze_key", znb_kit::jni_bridge_reference(&bridge::build_key, {"long", "int"})},
     {"ffi_ze_close", znb_kit::jni_bridge_reference(&bridge::close_lib, {})}

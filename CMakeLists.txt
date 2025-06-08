@@ -20,6 +20,8 @@ set(SOURCE_FILES
         src/main/memory.cpp
         src/main/security.cpp
         src/main/loader.cpp
+        src/main/bridge.cpp
+        src/main/session.cpp
 )
 
 include_directories(
