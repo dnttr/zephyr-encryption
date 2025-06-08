@@ -20,6 +20,9 @@ const std::unordered_multimap<std::string, znb_kit::jni_bridge_reference> ze_kit
     {"ffi_ze_decrypt_asymmetric", znb_kit::jni_bridge_reference(&bridge::decrypt_asymmetric, {"long", "byte[]"})},
     {"ffi_ze_nonce", znb_kit::jni_bridge_reference(&bridge::build_nonce, {"long", "int"})},
     {"ffi_ze_key", znb_kit::jni_bridge_reference(&bridge::build_key, {"long", "int"})},
+    {"ffi_ze_set_symmetric_key", znb_kit::jni_bridge_reference(&bridge::set_symmetric_key, {"long", "byte[]"})},
+    {"ffi_ze_set_asymmetric_key", znb_kit::jni_bridge_reference(&bridge::set_asymmetric_key, {"long","int", "byte[]"})},
+    {"ffi_ze_set_nonce", znb_kit::jni_bridge_reference(&bridge::set_nonce, {"long", "int", "byte[]"})},
     {"ffi_ze_close", znb_kit::jni_bridge_reference(&bridge::close_lib, {})}
 };
 

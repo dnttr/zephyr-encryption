@@ -152,6 +152,26 @@ namespace ze_kit
         return guarded_ptr(new data(buffer, size));
     }
 
+    bool security::is_key_buffer_valid(const int mode, const size_t size)
+    {
+        if (mode == 0)
+        {
+            return size == SYMMETRIC_KEY;
+        }
+
+        return size == PRIVATE_KEY;
+    }
+
+    bool security::is_nonce_buffer_valid(const int mode, const size_t size)
+    {
+        if (mode == 0)
+        {
+            return size == SYMMETRIC_NONCE;
+        }
+
+        return size == ASYMMETRIC_NONCE;
+    }
+
     guarded_ptr security::build_nonce_symmetric()
     {
         return build_nonce(SYMMETRIC_NONCE);

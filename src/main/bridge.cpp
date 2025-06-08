@@ -34,6 +34,9 @@ return FAILURE; \
 #define SYMMETRIC 0
 #define ASYMMETRIC 1
 
+/*
+ * Refactor this piece of crap.
+ */
 namespace ze_kit
 {
     void bridge::close_lib(JNIEnv *jni, [[maybe_unused]] jobject object)
@@ -152,6 +155,7 @@ namespace ze_kit
         }
 
         guarded_ptr aead_data;
+
         if (aead != nullptr) {
             aead_data = util::byteArray_to_data(jni, aead);
         } else {
@@ -288,13 +292,13 @@ namespace ze_kit
         }
     }
 
-    void bridge::build_key([[maybe_unused]] JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jint key_type)
+    void bridge::build_key([[maybe_unused]] JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jint mode)
     {
         SESSION_AVAILABLE_NO_RET(uuid);
 
         const auto current_session = library::sessions[uuid];
 
-        if (key_type == SYMMETRIC) {
+        if (mode == SYMMETRIC) {
             if (guarded_ptr key = security::build_key_symmetric()) {
                 current_session->shared_key = std::move(key);
 
@@ -316,5 +320,107 @@ namespace ze_kit
                 debug_print_cerr("[ZE] Failed to build asymmetric keys for session: " + std::to_string(uuid));
             }
         }
+    }
+
+    void bridge::set_symmetric_key(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jbyteArray key_buffer)
+    {
+        SESSION_AVAILABLE_NO_RET(uuid);
+
+        const auto current_session = library::sessions[uuid];
+        debug_print("[ZE] Setting key for session: " + std::to_string(uuid));
+
+        if (key_buffer == nullptr) {
+            debug_print_cerr("[ZE] Provided key is null for session: " + std::to_string(uuid));
+            return;
+        }
+
+        auto key = util::byteArray_to_data(jni, key_buffer);
+
+        if (!security::is_key_buffer_valid(0, key->get_size()))
+        {
+            debug_print_cerr("[ZE] Provided key is invalid for session: " + std::to_string(uuid));
+            return;
+        }
+
+        debug_print("[ZE] Setting symmetric key for session: " + std::to_string(uuid));
+        std::swap(current_session->shared_key, key);
+    }
+
+    void bridge::set_asymmetric_key(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jint mode, const jbyteArray key_buffer)
+    {
+        SESSION_AVAILABLE_NO_RET(uuid);
+        const auto current_session = library::sessions[uuid];
+
+        debug_print("[ZE] Setting key for session: " + std::to_string(uuid));
+
+        if (key_buffer == nullptr) {
+            debug_print_cerr("[ZE] Provided key is null for session: " + std::to_string(uuid));
+            return;
+        }
+
+        auto key = util::byteArray_to_data(jni, key_buffer);
+
+        if (!security::is_key_buffer_valid(1, key->get_size()))
+        {
+            debug_print_cerr("[ZE] Provided key is invalid for session: " + std::to_string(uuid));
+            return;
+        }
+
+        if (mode == 0)
+        {
+            debug_print("[ZE] Setting asymmetric public key for session: " + std::to_string(uuid));
+            std::swap(current_session->public_key, key);
+            return;
+        }
+
+        if (mode == 1)
+        {
+            debug_print("[ZE] Setting asymmetric secret key for session: " + std::to_string(uuid));
+            std::swap(current_session->secret_key, key);
+            return;
+        }
+
+        throw std::invalid_argument("Invalid mode");
+    }
+
+    void bridge::set_nonce(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jint mode, const jbyteArray nonce_buffer)
+    {
+        SESSION_AVAILABLE_NO_RET(uuid);
+        const auto current_session = library::sessions[uuid];
+
+        debug_print("[ZE] Setting nonce for session: " + std::to_string(uuid));
+
+        if (nonce_buffer == nullptr)
+        {
+            debug_print_cerr("[ZE] Provided nonce is null for session: " + std::to_string(uuid));
+            return;
+        }
+
+        auto nonce = util::byteArray_to_data(jni, nonce_buffer);
+
+        if (mode != 1 && mode != 0)
+        {
+            debug_print_cerr("[ZE] Invalid mode for nonce setting: " + std::to_string(mode));
+            return;
+        }
+
+        if (!security::is_nonce_buffer_valid(mode, nonce->get_size()))
+        {
+            debug_print_cerr("[ZE] Provided nonce is invalid for session: " + std::to_string(uuid));
+            return;
+        }
+
+        if (mode == 0)
+        {
+            debug_print("[ZE] Setting symmetric nonce for session: " + std::to_string(uuid));
+            std::swap(current_session->symmetric_nonce, nonce);
+        }
+        else
+        {
+            debug_print("[ZE] Setting asymmetric nonce for session: " + std::to_string(uuid));
+            std::swap(current_session->asymmetric_nonce, nonce);
+        }
+
+        throw std::runtime_error("Weird error, please report it to the developer");
     }
 }
