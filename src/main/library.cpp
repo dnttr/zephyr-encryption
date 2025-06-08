@@ -4,6 +4,7 @@
 
 #include "ZEKit/library.hpp"
 
+#include <cstdio>
 #include <sodium/core.h>
 
 bool ze_kit::library::initialized = false;
@@ -17,8 +18,11 @@ bool ze_kit::library::initialize()
 
     if (sodium_init() != SUCCESS)
     {
+        printf("Failed to initialize libsodium");
         return FAILURE;
     }
+
+    printf("Successfully initialized libsodium\n");
 
     initialized = true;
     return SUCCESS;

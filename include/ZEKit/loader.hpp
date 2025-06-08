@@ -16,7 +16,6 @@ namespace ze_kit
     {
     public:
         static const std::unordered_multimap<std::string, znb_kit::jni_bridge_reference> methods;
-        static std::unique_ptr<znb_kit::klass_signature> klass;
         static const std::string name;
     };
 }

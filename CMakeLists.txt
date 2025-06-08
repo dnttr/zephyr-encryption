@@ -1,10 +1,15 @@
-cmake_minimum_required(VERSION 3.22)
-project(zephyr-encryption VERSION 0.1.0 LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.31.6)
+
+project(zephyr-encryption LANGUAGES C CXX)
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-diagnostics-show-template-tree")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU") # For GCC
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-backtrace-limit=0")
+endif()
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 include(${CMAKE_SOURCE_DIR}/tools/Dependencies.cmake)
 include(${CMAKE_SOURCE_DIR}/tools/Patch.cmake)
 
@@ -14,6 +19,7 @@ set(SOURCE_FILES
         src/main/library.cpp
         src/main/memory.cpp
         src/main/security.cpp
+        src/main/loader.cpp
 )
 
 include_directories(
