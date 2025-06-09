@@ -34,5 +34,11 @@ namespace ze_kit
         static void set_asymmetric_key(JNIEnv* jni, jobject object, jlong uuid, jint mode, jbyteArray key_buffer);
 
         static void set_nonce(JNIEnv* jni, jobject object, jlong uuid, jint mode, jbyteArray nonce_buffer);
+
+        static jbyteArray get_symmetric_key(JNIEnv* jni, jobject object, jlong uuid);
+
+        static jbyteArray get_asymmetric_key(JNIEnv* jni, jobject object, jlong uuid, jint mode);
+
+        static jbyteArray get_nonce(JNIEnv* jni, jobject object, jlong uuid, jint mode);
     };
 }
