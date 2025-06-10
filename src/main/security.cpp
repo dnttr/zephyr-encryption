@@ -208,7 +208,7 @@ namespace ze_kit
         guarded_ptr public_key_ptr(new data(public_key, PUBLIC_KEY));
         guarded_ptr private_key_ptr(new data(private_key, PRIVATE_KEY));
 
-        return std::make_pair(public_key_ptr, private_key_ptr);
+        return std::pair(std::move(public_key_ptr), std::move(private_key_ptr));
     }
 
     guarded_ptr security::build_hash(const data &secret_key, const data &buffer)
@@ -285,7 +285,7 @@ namespace ze_kit
         guarded_ptr receive_ptr(new data(receive, SESSION));
         guarded_ptr transmission_ptr(new data(transmission, SESSION));
 
-        return std::make_pair(receive_ptr, transmission_ptr);
+        return std::pair(std::move(receive_ptr), std::move(transmission_ptr));
     }
 
     std::pair<guarded_ptr, guarded_ptr> security::derive_server_key(const data &client_public_key, const data &server_public_key, const data &server_private_key)
@@ -309,7 +309,7 @@ namespace ze_kit
         guarded_ptr receive_ptr(new data(receive, SESSION));
         guarded_ptr transmission_ptr(new data(transmission, SESSION));
 
-        return std::make_pair(receive_ptr, transmission_ptr);
+        return std::pair(std::move(receive_ptr), std::move(transmission_ptr));
     }
 
     std::pair<guarded_ptr, guarded_ptr> security::build_key_asymmetric()
@@ -328,6 +328,6 @@ namespace ze_kit
         guarded_ptr public_key_ptr(new data(public_key, PUBLIC_KEY));
         guarded_ptr private_key_ptr(new data(private_key, PRIVATE_KEY));
 
-        return std::make_pair(std::move(public_key_ptr), std::move(private_key_ptr));
+        return std::pair(std::move(public_key_ptr), std::move(private_key_ptr));
     }
 }
