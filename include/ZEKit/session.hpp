@@ -10,10 +10,12 @@ namespace ze_kit
     class session
     {
     public:
-        guarded_ptr secret_key;
+        guarded_ptr private_key;
         guarded_ptr public_key;
         guarded_ptr shared_key;
         guarded_ptr hash_key;
+
+        std::pair<guarded_ptr, guarded_ptr> derived_keys;
 
         guarded_ptr symmetric_nonce;
         guarded_ptr asymmetric_nonce;

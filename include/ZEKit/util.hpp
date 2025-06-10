@@ -15,6 +15,10 @@ namespace ze_kit
     class util
     {
     public:
+        static bool is_ptr_valid(const guarded_ptr &ptr)
+        {
+            return ptr != nullptr;
+        }
         static bool is_data_valid(const data &b1)
         {
             return !(b1.get_buffer() == nullptr || b1.get_size() == 0);
