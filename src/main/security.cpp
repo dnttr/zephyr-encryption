@@ -7,7 +7,7 @@
 
 #define SYMMETRIC_KEY crypto_aead_xchacha20poly1305_ietf_KEYBYTES
 
-#define HASH_SIZE crypto_generichash_BYTES
+#define CTX crypto_kdf_blake2b_CONTEXTBYTES
 #define SESSION crypto_kx_SESSIONKEYBYTES
 
 // I think they're equal, though for the sake of clarity let's keep them separate
@@ -194,13 +194,18 @@ namespace ze_kit
         return guarded_ptr(new data(key, SYMMETRIC_KEY));
     }
 
-    std::pair<guarded_ptr, guarded_ptr> security::build_hash_key()
+
+
+    std::pair<guarded_ptr, guarded_ptr> security::build_derivable_key() //does such word even exist?
     {
 
         const auto public_key = memory::allocate(PUBLIC_KEY);
         const auto private_key = memory::allocate(PRIVATE_KEY);
 
-        crypto_kx_keypair(public_key, private_key);
+        if (crypto_kx_keypair(public_key, private_key) != 0)
+        {
+            throw std::runtime_error("Failed to generate key pair (derivable)");
+        }
 
         guarded_ptr public_key_ptr(new data(public_key, PUBLIC_KEY));
         guarded_ptr private_key_ptr(new data(private_key, PRIVATE_KEY));
@@ -208,12 +213,35 @@ namespace ze_kit
         return std::make_pair(public_key_ptr, private_key_ptr);
     }
 
+    guarded_ptr security::derive_key(const data &receive)
+    {
+        const auto subkey = memory::allocate(SESSION);
+
+        constexpr char ctx[CTX] = { 'Z', 'E', 'K', 'i', 't', 'C', 'T', 'X'};
+        constexpr uint64_t subkey_id = 0;
+
+        if (crypto_kdf_blake2b_derive_from_key(subkey, SESSION, subkey_id, ctx, receive.get_buffer()) != 0)
+        {
+            memory::deallocate(subkey, SESSION);
+
+            throw std::runtime_error("Failed to derive key");
+        }
+
+        return guarded_ptr(new data(subkey, SESSION));
+    }
+
     std::pair<guarded_ptr, guarded_ptr> security::derive_client_key(const data &server_public_key, const data &client_public_key, const data &client_private_key)
     {
         const auto receive = memory::allocate(SESSION);
         const auto transmission = memory::allocate(SESSION);
 
-        crypto_kx_client_session_keys(receive, transmission, client_public_key.get_buffer(), client_private_key.get_buffer(), server_public_key.get_buffer());
+        if (crypto_kx_client_session_keys(receive, transmission, client_public_key.get_buffer(), client_private_key.get_buffer(), server_public_key.get_buffer()) != 0)
+        {
+            memory::deallocate(receive, SESSION);
+            memory::deallocate(transmission, SESSION);
+
+            throw std::runtime_error("Failed to derive client key");
+        }
 
         guarded_ptr receive_ptr(new data(receive, SESSION));
         guarded_ptr transmission_ptr(new data(transmission, SESSION));
@@ -226,7 +254,13 @@ namespace ze_kit
         const auto receive = memory::allocate(SESSION);
         const auto transmission = memory::allocate(SESSION);
 
-        crypto_kx_server_session_keys(receive, transmission, server_public_key.get_buffer(), server_private_key.get_buffer(), client_public_key.get_buffer());
+        if (crypto_kx_server_session_keys(receive, transmission, server_public_key.get_buffer(), server_private_key.get_buffer(), client_public_key.get_buffer()) != 0)
+        {
+            memory::deallocate(receive, SESSION);
+            memory::deallocate(transmission, SESSION);
+
+            throw std::runtime_error("Failed to derive server key");
+        }
 
         guarded_ptr receive_ptr(new data(receive, SESSION));
         guarded_ptr transmission_ptr(new data(transmission, SESSION));
@@ -239,7 +273,13 @@ namespace ze_kit
         const auto public_key = memory::allocate(PUBLIC_KEY);
         const auto private_key = memory::allocate(PRIVATE_KEY);
 
-        crypto_box_curve25519xchacha20poly1305_keypair(public_key, private_key);
+        if (crypto_box_curve25519xchacha20poly1305_keypair(public_key, private_key) != 0)
+        {
+            memory::deallocate(public_key, PUBLIC_KEY);
+            memory::deallocate(private_key, PRIVATE_KEY);
+
+            throw std::runtime_error("Failed to generate asymmetric key");
+        }
 
         guarded_ptr public_key_ptr(new data(public_key, PUBLIC_KEY));
         guarded_ptr private_key_ptr(new data(private_key, PRIVATE_KEY));
