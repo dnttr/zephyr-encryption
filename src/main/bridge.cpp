@@ -66,7 +66,7 @@ namespace ze_kit
         return uuid;
     }
 
-    jint bridge::close_session([[maybe_unused]] JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid)
+    jint bridge::close_session([[maybe_unused]] JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid)
     {
         SESSION_AVAILABLE_FAILURE_RET(uuid);
         debug_print("[ZE] Closing session with UUID: " + std::to_string(uuid));
@@ -77,7 +77,7 @@ namespace ze_kit
         return SUCCESS;
     }
 
-    jbyteArray bridge::encrypt_symmetric(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jbyteArray data, const jbyteArray aead)
+    jbyteArray bridge::encrypt_symmetric(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jbyteArray data, const jbyteArray aead)
     {
         SESSION_AVAILABLE(uuid);
         debug_print("[ZE] Encrypting data (SYMMETRIC) with UUID: " + std::to_string(uuid));
@@ -128,7 +128,7 @@ namespace ze_kit
         return util::data_to_byteArray(jni, encrypted.get());
     }
 
-    jbyteArray bridge::decrypt_symmetric(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jbyteArray encrypted_data, const jbyteArray aead)
+    jbyteArray bridge::decrypt_symmetric(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jbyteArray encrypted_data, const jbyteArray aead)
     {
         SESSION_AVAILABLE(uuid);
 
@@ -175,7 +175,7 @@ namespace ze_kit
         return util::data_to_byteArray(jni, decrypted.get());
     }
 
-    jbyteArray bridge::encrypt_asymmetric(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jbyteArray data)
+    jbyteArray bridge::encrypt_asymmetric(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jbyteArray data)
     {
         SESSION_AVAILABLE(uuid);
 
@@ -221,7 +221,7 @@ namespace ze_kit
         return util::data_to_byteArray(jni, encrypted.get());
     }
 
-    jbyteArray bridge::decrypt_asymmetric(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jbyteArray encrypted_data)
+    jbyteArray bridge::decrypt_asymmetric(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jbyteArray encrypted_data)
     {
         SESSION_AVAILABLE(uuid);
 
@@ -263,7 +263,7 @@ namespace ze_kit
         return util::data_to_byteArray(jni, decrypted.get());
     }
 
-    void bridge::build_nonce([[maybe_unused]] JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jint mode)
+    void bridge::build_nonce([[maybe_unused]] JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode)
     {
         SESSION_AVAILABLE_NO_RET(uuid);
 
@@ -292,7 +292,7 @@ namespace ze_kit
         }
     }
 
-    void bridge::build_key([[maybe_unused]] JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jint mode)
+    void bridge::build_key([[maybe_unused]] JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode)
     {
         SESSION_AVAILABLE_NO_RET(uuid);
 
@@ -322,7 +322,7 @@ namespace ze_kit
         }
     }
 
-    void bridge::set_symmetric_key(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jbyteArray key_buffer)
+    void bridge::set_symmetric_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jbyteArray key_buffer)
     {
         SESSION_AVAILABLE_NO_RET(uuid);
 
@@ -346,7 +346,7 @@ namespace ze_kit
         std::swap(current_session->shared_key, key);
     }
 
-    void bridge::set_asymmetric_key(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jint mode, const jbyteArray key_buffer)
+    void bridge::set_asymmetric_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode, const jbyteArray key_buffer)
     {
         SESSION_AVAILABLE_NO_RET(uuid);
         const auto current_session = library::sessions[uuid];
@@ -383,7 +383,7 @@ namespace ze_kit
         throw std::invalid_argument("Invalid mode");
     }
 
-    void bridge::set_nonce(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jint mode, const jbyteArray nonce_buffer)
+    void bridge::set_nonce(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode, const jbyteArray nonce_buffer)
     {
         SESSION_AVAILABLE_NO_RET(uuid);
         const auto current_session = library::sessions[uuid];
@@ -424,7 +424,7 @@ namespace ze_kit
         throw std::runtime_error("Weird error, please report it to the developer");
     }
 
-    jbyteArray bridge::get_symmetric_key(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid)
+    jbyteArray bridge::get_symmetric_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid)
     {
         SESSION_AVAILABLE(uuid);
         debug_print("[ZE] Getting symmetric key for session: " + std::to_string(uuid));
@@ -439,7 +439,7 @@ namespace ze_kit
         return util::data_to_byteArray(jni, current_session->shared_key.get());
     }
 
-    jbyteArray bridge::get_asymmetric_key(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jint mode)
+    jbyteArray bridge::get_asymmetric_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode)
     {
         SESSION_AVAILABLE(uuid);
         debug_print("[ZE] Getting asymmetric key for session: " + std::to_string(uuid));
@@ -468,11 +468,12 @@ namespace ze_kit
         return util::data_to_byteArray(jni, current_session->secret_key.get());
     }
 
-    jbyteArray bridge::get_nonce(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jint mode)
+    jbyteArray bridge::get_nonce(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode)
     {
         SESSION_AVAILABLE(uuid);
-
         const auto current_session = library::sessions[uuid];
+
+        debug_print("[ZE] Getting nonce for session: " + std::to_string(uuid));
 
         if (!(mode == 0 || mode == 1))
         {
@@ -500,5 +501,63 @@ namespace ze_kit
         }
 
         return util::data_to_byteArray(jni, current_session->asymmetric_nonce.get());
+    }
+
+    jbyteArray bridge::build_hash(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jbyteArray message_buffer)
+    {
+        SESSION_AVAILABLE(uuid);
+        const auto current_session = library::sessions[uuid];
+
+        debug_print("[ZE] Building hash for session: " + std::to_string(uuid));
+
+        if (current_session->secret_key == nullptr)
+        {
+            debug_print_cerr("[ZE] No secret key set for session: " + std::to_string(uuid));
+            return nullptr;
+        }
+
+        if (message_buffer == nullptr)
+        {
+            debug_print_cerr("[ZE] Provided message is null for session: " + std::to_string(uuid));
+            return nullptr;
+        }
+
+        const auto secret_key = *current_session->secret_key;
+        const auto content = util::byteArray_to_data(jni, message_buffer);
+
+        if (content == nullptr)
+        {
+            debug_print_cerr("[ZE] Failed to convert message buffer to ze_kit::data for session: " + std::to_string(uuid));
+            return nullptr;
+        }
+
+        const auto hash = security::build_hash(secret_key, *content);
+
+        return util::data_to_byteArray(jni, hash.get());
+    }
+
+    bool bridge::compare_hash(JNIEnv *jni, jobject object, const jlong uuid, jbyteArray hash_buffer,
+                              jbyteArray message_buffer)
+    {
+        SESSION_AVAILABLE(uuid);
+        const auto current_session = library::sessions[uuid];
+    }
+
+    void bridge::derive_secret_key(JNIEnv *jni, jobject object, const jlong uuid, jint mode, jbyteArray public_key_buffer)
+    {
+        SESSION_AVAILABLE_NO_RET(uuid);
+        const auto current_session = library::sessions[uuid];
+    }
+
+    void bridge::build_derivable_key(JNIEnv *jni, jobject object, const jlong uuid)
+    {
+        SESSION_AVAILABLE_NO_RET(uuid);
+        const auto current_session = library::sessions[uuid];
+    }
+
+    void bridge::derive_hash_key(JNIEnv *jni, jobject object, const jlong uuid)
+    {
+        SESSION_AVAILABLE_NO_RET(uuid);
+        const auto current_session = library::sessions[uuid];
     }
 }
