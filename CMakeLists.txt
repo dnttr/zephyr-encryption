@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.31.6)
 
-project(zephyr-encryption LANGUAGES C CXX)
+project(zephyr-encryption VERSION 1.0.1 LANGUAGES C CXX)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-diagnostics-show-template-tree")
