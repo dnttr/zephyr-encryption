@@ -523,24 +523,50 @@ namespace ze_kit
         }
 
         const auto secret_key = *current_session->secret_key;
-        const auto content = util::byteArray_to_data(jni, message_buffer);
+        const auto message_ptr = util::byteArray_to_data(jni, message_buffer);
 
-        if (content == nullptr)
+        if (message_ptr == nullptr)
         {
             debug_print_cerr("[ZE] Failed to convert message buffer to ze_kit::data for session: " + std::to_string(uuid));
             return nullptr;
         }
 
-        const auto hash = security::build_hash(secret_key, *content);
+        const auto hash = security::build_hash(secret_key, *message_ptr);
 
         return util::data_to_byteArray(jni, hash.get());
     }
 
-    bool bridge::compare_hash(JNIEnv *jni, jobject object, const jlong uuid, jbyteArray hash_buffer,
-                              jbyteArray message_buffer)
+    bool bridge::compare_hash(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jbyteArray hash_buffer,
+                              const jbyteArray message_buffer)
     {
-        SESSION_AVAILABLE(uuid);
+        SESSION_AVAILABLE_FAILURE_RET(uuid);
         const auto current_session = library::sessions[uuid];
+
+        debug_print("[ZE] Comparing hash for session: " + std::to_string(uuid));
+
+        if (current_session->secret_key == nullptr)
+        {
+            debug_print_cerr("[ZE] No secret key set for session: " + std::to_string(uuid));
+            return FAILURE;
+        }
+
+        if (message_buffer == nullptr || hash_buffer == nullptr)
+        {
+            debug_print_cerr("[ZE] Provided message or hash is null for session: " + std::to_string(uuid));
+            return FAILURE;
+        }
+
+        const auto secret_key = *current_session->secret_key;
+        const auto message_ptr = util::byteArray_to_data(jni, message_buffer);
+        const auto hash_ptr = util::byteArray_to_data(jni, hash_buffer);
+
+        if (message_ptr == nullptr || hash_ptr == nullptr)
+        {
+            debug_print_cerr("[ZE] Failed to convert message or hash buffer to ze_kit::data for session: " + std::to_string(uuid));
+            return FAILURE;
+        }
+
+        return security::compare_hash(secret_key, *hash_ptr, *message_ptr);
     }
 
     void bridge::derive_secret_key(JNIEnv *jni, jobject object, const jlong uuid, jint mode, jbyteArray public_key_buffer)
