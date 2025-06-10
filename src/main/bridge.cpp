@@ -567,7 +567,7 @@ namespace ze_kit
         return security::compare_hash(*current_session->hash_key, *hash_ptr, *message_ptr);
     }
 
-    void bridge::derive_secret_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, jint mode, jbyteArray public_key_buffer)
+    void bridge::derive_secret_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode, const jbyteArray public_key_buffer)
     {
         SESSION_AVAILABLE_NO_RET(uuid);
         const auto current_session = library::sessions[uuid];
@@ -621,7 +621,7 @@ namespace ze_kit
         debug_print("[ZE] Successfully derived secret key for session: " + std::to_string(uuid));
     }
 
-    void bridge::build_derivable_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid)
+    void bridge::build_derivable_key([[maybe_unused]] JNIEnv *, [[maybe_unused]] jobject, const jlong uuid)
     {
         SESSION_AVAILABLE_NO_RET(uuid);
         const auto current_session = library::sessions[uuid];
@@ -638,7 +638,7 @@ namespace ze_kit
         debug_print("[ZE] Successfully built derivable keys for session: " + std::to_string(uuid));
     }
 
-    void bridge::derive_hash_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid)
+    void bridge::derive_hash_key([[maybe_unused]] JNIEnv *, [[maybe_unused]] jobject, const jlong uuid)
     {
         SESSION_AVAILABLE_NO_RET(uuid);
         const auto current_session = library::sessions[uuid];
