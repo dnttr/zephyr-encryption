@@ -13,17 +13,40 @@ namespace ze_kit
         static guarded_ptr build_nonce(size_t size);
 
     public:
-        static guarded_ptr encrypt_symmetric(const data &key, const data &aead, const data &buffer, const data &nonce);
-        static guarded_ptr decrypt_symmetric(const data &key, const data &aead, const data &buffer, const data &nonce);
+        static guarded_ptr encrypt_symmetric(const data &key,
+                                             const data &aead,
+                                             const data &buffer,
+                                             const data &nonce);
 
-        static guarded_ptr encrypt_asymmetric(const data &public_key, const data &private_key, const data &buffer, const data &nonce);
-        static guarded_ptr decrypt_asymmetric(const data &public_key, const data &private_key, const data &buffer, const data &nonce);
+        static guarded_ptr decrypt_symmetric(const data &key,
+                                             const data &aead,
+                                             const data &buffer,
+                                             const data &nonce);
+
+        static guarded_ptr encrypt_asymmetric(const data &public_key,
+                                              const data &private_key,
+                                              const data &buffer,
+                                              const data &nonce);
+
+        static guarded_ptr decrypt_asymmetric(const data &public_key,
+                                              const data &private_key,
+                                              const data &buffer,
+                                              const data &nonce);
+
+        static std::pair<guarded_ptr, guarded_ptr> derive_client_key(const data &server_public_key,
+                                                                     const data &client_public_key,
+                                                                     const data &client_private_key);
+
+        static std::pair<guarded_ptr, guarded_ptr> derive_server_key(const data &client_public_key,
+                                                                     const data &server_public_key,
+                                                                     const data &server_private_key);
 
         static guarded_ptr build_nonce_symmetric();
         static guarded_ptr build_nonce_asymmetric();
 
         static guarded_ptr build_key_symmetric();
 
+        static std::pair<guarded_ptr, guarded_ptr> build_hash_key();
         static std::pair<guarded_ptr, guarded_ptr> build_key_asymmetric();
 
         static bool is_key_buffer_valid(int mode, size_t size);

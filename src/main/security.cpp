@@ -7,6 +7,9 @@
 
 #define SYMMETRIC_KEY crypto_aead_xchacha20poly1305_ietf_KEYBYTES
 
+#define HASH_SIZE crypto_generichash_BYTES
+#define SESSION crypto_kx_SESSIONKEYBYTES
+
 // I think they're equal, though for the sake of clarity let's keep them separate
 #define SYMMETRIC_NONCE crypto_aead_xchacha20poly1305_ietf_NPUBBYTES
 #define ASYMMETRIC_NONCE crypto_box_curve25519xchacha20poly1305_NONCEBYTES
@@ -189,6 +192,46 @@ namespace ze_kit
         crypto_aead_xchacha20poly1305_ietf_keygen(key);
 
         return guarded_ptr(new data(key, SYMMETRIC_KEY));
+    }
+
+    std::pair<guarded_ptr, guarded_ptr> security::build_hash_key()
+    {
+
+        const auto public_key = memory::allocate(PUBLIC_KEY);
+        const auto private_key = memory::allocate(PRIVATE_KEY);
+
+        crypto_kx_keypair(public_key, private_key);
+
+        guarded_ptr public_key_ptr(new data(public_key, PUBLIC_KEY));
+        guarded_ptr private_key_ptr(new data(private_key, PRIVATE_KEY));
+
+        return std::make_pair(public_key_ptr, private_key_ptr);
+    }
+
+    std::pair<guarded_ptr, guarded_ptr> security::derive_client_key(const data &server_public_key, const data &client_public_key, const data &client_private_key)
+    {
+        const auto receive = memory::allocate(SESSION);
+        const auto transmission = memory::allocate(SESSION);
+
+        crypto_kx_client_session_keys(receive, transmission, client_public_key.get_buffer(), client_private_key.get_buffer(), server_public_key.get_buffer());
+
+        guarded_ptr receive_ptr(new data(receive, SESSION));
+        guarded_ptr transmission_ptr(new data(transmission, SESSION));
+
+        return std::make_pair(receive_ptr, transmission_ptr);
+    }
+
+    std::pair<guarded_ptr, guarded_ptr> security::derive_server_key(const data &client_public_key, const data &server_public_key, const data &server_private_key)
+    {
+        const auto receive = memory::allocate(SESSION);
+        const auto transmission = memory::allocate(SESSION);
+
+        crypto_kx_server_session_keys(receive, transmission, server_public_key.get_buffer(), server_private_key.get_buffer(), client_public_key.get_buffer());
+
+        guarded_ptr receive_ptr(new data(receive, SESSION));
+        guarded_ptr transmission_ptr(new data(transmission, SESSION));
+
+        return std::make_pair(receive_ptr, transmission_ptr);
     }
 
     std::pair<guarded_ptr, guarded_ptr> security::build_key_asymmetric()

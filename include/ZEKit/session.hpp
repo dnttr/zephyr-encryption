@@ -13,10 +13,11 @@ namespace ze_kit
         guarded_ptr secret_key;
         guarded_ptr public_key;
         guarded_ptr shared_key;
+        guarded_ptr hash_key;
+
         guarded_ptr symmetric_nonce;
         guarded_ptr asymmetric_nonce;
 
-        // Getter methods for nonces
         [[nodiscard]] const data& get_symmetric_nonce() const {
             return symmetric_nonce ? *symmetric_nonce : empty_data;
         }
@@ -25,7 +26,6 @@ namespace ze_kit
             return asymmetric_nonce ? *asymmetric_nonce : empty_data;
         }
 
-        // Setter methods for nonces
         void set_symmetric_nonce(const data& nonce) {
             symmetric_nonce = guarded_ptr(new data(nonce));
         }
