@@ -7,6 +7,7 @@
 
 #define SYMMETRIC_KEY crypto_aead_xchacha20poly1305_ietf_KEYBYTES
 
+#define HASH crypto_generichash_blake2b_BYTES
 #define CTX crypto_kdf_blake2b_CONTEXTBYTES
 #define SESSION crypto_kx_SESSIONKEYBYTES
 
@@ -194,8 +195,6 @@ namespace ze_kit
         return guarded_ptr(new data(key, SYMMETRIC_KEY));
     }
 
-
-
     std::pair<guarded_ptr, guarded_ptr> security::build_derivable_key() //does such word even exist?
     {
 
@@ -213,8 +212,44 @@ namespace ze_kit
         return std::make_pair(public_key_ptr, private_key_ptr);
     }
 
+    guarded_ptr security::build_hash(const data &key, const data &buffer)
+    {
+        if (!util::is_data_valid(key, buffer))
+        {
+            throw std::invalid_argument("Invalid arguments were provided");
+        }
+
+        const auto hash = memory::allocate(HASH);
+
+        if (crypto_generichash_blake2b(hash, HASH, buffer.get_buffer(), buffer.get_size(), key.get_buffer(), key.get_size()) != 0)
+        {
+            memory::deallocate(hash, HASH);
+
+            throw std::runtime_error("Failed to generate hash");
+        }
+
+        return guarded_ptr(new data(hash, HASH));
+    }
+
+    bool security::compare_hash(const data &key, const data &received, const data &buffer)
+    {
+        if (!util::is_data_valid(key, received, buffer))
+        {
+            throw std::invalid_argument("Invalid arguments were provided");
+        }
+
+        const guarded_ptr computed = build_hash(key, buffer);
+
+        return memory::compare(received.get_buffer(), computed->get_buffer(), HASH);
+    }
+
     guarded_ptr security::derive_key(const data &receive)
     {
+        if (!util::is_data_valid(receive))
+        {
+            throw std::invalid_argument("Invalid arguments were provided");
+        }
+
         const auto subkey = memory::allocate(SESSION);
 
         constexpr char ctx[CTX] = { 'Z', 'E', 'K', 'i', 't', 'C', 'T', 'X'};
@@ -232,6 +267,11 @@ namespace ze_kit
 
     std::pair<guarded_ptr, guarded_ptr> security::derive_client_key(const data &server_public_key, const data &client_public_key, const data &client_private_key)
     {
+        if (!util::is_data_valid(client_public_key, server_public_key, client_private_key))
+        {
+            throw std::invalid_argument("Invalid arguments were provided");
+        }
+
         const auto receive = memory::allocate(SESSION);
         const auto transmission = memory::allocate(SESSION);
 
@@ -251,6 +291,11 @@ namespace ze_kit
 
     std::pair<guarded_ptr, guarded_ptr> security::derive_server_key(const data &client_public_key, const data &server_public_key, const data &server_private_key)
     {
+        if (!util::is_data_valid(client_public_key, server_public_key, server_private_key))
+        {
+            throw std::invalid_argument("Invalid arguments were provided");
+        }
+
         const auto receive = memory::allocate(SESSION);
         const auto transmission = memory::allocate(SESSION);
 

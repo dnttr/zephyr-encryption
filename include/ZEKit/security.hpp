@@ -49,6 +49,9 @@ namespace ze_kit
         static std::pair<guarded_ptr, guarded_ptr> build_derivable_key();
         static std::pair<guarded_ptr, guarded_ptr> build_key_asymmetric();
 
+        static guarded_ptr build_hash(const data &key, const data &buffer);
+        static bool compare_hash(const data &key, const data &received, const data &buffer);
+
         static guarded_ptr derive_key(const data &receive);
 
         static bool is_key_buffer_valid(int mode, size_t size);

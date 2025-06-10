@@ -15,49 +15,64 @@ namespace ze_kit
     class util
     {
     public:
-        static bool is_data_valid(const data &public_key, const data &private_key, const data &buffer, const data &nonce)
+        static bool is_data_valid(const data &b1)
         {
-            if (public_key.get_buffer() == nullptr || public_key.get_size() == 0)
+            return !(b1.get_buffer() == nullptr || b1.get_size() == 0);
+        }
+
+        static bool is_data_valid(const data &b1, const data &b2)
+        {
+            if (b1.get_buffer() == nullptr || b1.get_size() == 0)
             {
-                std::cout << "xd1" << std::endl;
                 return false;
             }
 
-            if (private_key.get_buffer() == nullptr || private_key.get_size() == 0)
+            if (b2.get_buffer() == nullptr || b2.get_size() == 0)
             {
-
-                std::cout << "xd2" << std::endl;
-                return false;
-            }
-
-            if (buffer.get_buffer() == nullptr || buffer.get_size() == 0)
-            {
-                std::cout << "xd3" << std::endl;
-                return false;
-            }
-
-            if (nonce.get_buffer() == nullptr || nonce.get_size() == 0)
-            {
-                std::cout << "xd4" << std::endl;
                 return false;
             }
 
             return true;
         }
 
-        static bool is_data_valid(const data &key, const data &buffer, const data &nonce)
+        static bool is_data_valid(const data &b1, const data &b2, const data &b3)
         {
-            if (key.get_buffer() == nullptr || key.get_size() == 0)
+            if (b1.get_buffer() == nullptr || b1.get_size() == 0)
             {
                 return false;
             }
 
-            if (buffer.get_buffer() == nullptr || buffer.get_size() == 0)
+            if (b2.get_buffer() == nullptr || b2.get_size() == 0)
             {
                 return false;
             }
 
-            if (nonce.get_buffer() == nullptr || nonce.get_size() == 0)
+            if (b3.get_buffer() == nullptr || b3.get_size() == 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        static bool is_data_valid(const data &b1, const data &b2, const data &b3, const data &b4)
+        {
+            if (b1.get_buffer() == nullptr || b1.get_size() == 0)
+            {
+                return false;
+            }
+
+            if (b2.get_buffer() == nullptr || b2.get_size() == 0)
+            {
+                return false;
+            }
+
+            if (b3.get_buffer() == nullptr || b3.get_size() == 0)
+            {
+                return false;
+            }
+
+            if (b4.get_buffer() == nullptr || b4.get_size() == 0)
             {
                 return false;
             }
