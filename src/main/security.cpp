@@ -242,9 +242,9 @@ namespace ze_kit
         return memory::compare(received_hash.get_buffer(), computed->get_buffer(), HASH);
     }
 
-    guarded_ptr security::derive_hash_key(const data &received_public_key)
+    guarded_ptr security::derive_hash_key(const data &derived_public_key)
     {
-        if (!util::is_data_valid(received_public_key))
+        if (!util::is_data_valid(derived_public_key))
         {
             throw std::invalid_argument("Invalid arguments were provided");
         }
@@ -254,7 +254,7 @@ namespace ze_kit
         constexpr char ctx[CTX] = { 'Z', 'E', 'K', 'i', 't', 'C', 'T', 'X'};
         constexpr uint64_t subkey_id = 0;
 
-        if (crypto_kdf_blake2b_derive_from_key(subkey, SESSION, subkey_id, ctx, received_public_key.get_buffer()) != 0)
+        if (crypto_kdf_blake2b_derive_from_key(subkey, SESSION, subkey_id, ctx, derived_public_key.get_buffer()) != 0)
         {
             memory::deallocate(subkey, SESSION);
 

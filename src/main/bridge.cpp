@@ -643,5 +643,20 @@ namespace ze_kit
         SESSION_AVAILABLE_NO_RET(uuid);
         const auto current_session = library::sessions[uuid];
         debug_print("[ZE] Deriving hash key for session: " + std::to_string(uuid));
+
+        if (current_session->derived_keys.first == nullptr || current_session->derived_keys.second == nullptr) {
+            debug_print_cerr("[ZE] Missing derived keys for session: " + std::to_string(uuid));
+            return;
+        }
+
+        auto hash_key = security::derive_hash_key(*current_session->derived_keys.second);
+
+        if (hash_key == nullptr) {
+            debug_print_cerr("[ZE] Failed to derive hash key for session: " + std::to_string(uuid));
+            return;
+        }
+
+        current_session->hash_key = std::move(hash_key);
+        debug_print("[ZE] Successfully derived hash key for session: " + std::to_string(uuid));
     }
 }

@@ -61,7 +61,7 @@ namespace ze_kit
                                  const data &received_hash,
                                  const data &buffer);
 
-        static guarded_ptr derive_hash_key(const data &received_public_key);
+        static guarded_ptr derive_hash_key(const data &derived_public_key);
 
         static bool is_key_buffer_valid(int mode, size_t size);
         static bool is_nonce_buffer_valid(int mode, size_t size);
