@@ -197,7 +197,6 @@ namespace ze_kit
 
     std::pair<guarded_ptr, guarded_ptr> security::build_derivable_key() //does such word even exist?
     {
-
         const auto public_key = memory::allocate(PUBLIC_KEY);
         const auto private_key = memory::allocate(PRIVATE_KEY);
 

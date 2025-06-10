@@ -15,6 +15,7 @@ namespace ze_kit
         guarded_ptr shared_key;
         guarded_ptr hash_key;
 
+        std::pair<guarded_ptr, guarded_ptr> base_keys;
         std::pair<guarded_ptr, guarded_ptr> derived_keys;
 
         guarded_ptr symmetric_nonce;

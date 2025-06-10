@@ -578,27 +578,31 @@ namespace ze_kit
             return;
         }
 
-        const auto key = util::byteArray_to_data(jni, public_key_buffer);
-        if (key == nullptr) {
+        const auto target_key = util::byteArray_to_data(jni, public_key_buffer);
+        if (target_key == nullptr) {
             debug_print_cerr("[ZE] Failed to convert public key to data for session: " + std::to_string(uuid));
             return;
         }
 
-        if (current_session->public_key == nullptr || current_session->private_key == nullptr) {
-            debug_print_cerr("[ZE] No public or private key set for session: " + std::to_string(uuid));
+        if (current_session->base_keys.first == nullptr || current_session->base_keys.second == nullptr) {
+            debug_print_cerr("[ZE] No public or private BASE key set for session: " + std::to_string(uuid));
             return;
         }
 
+        const auto public_key = *current_session->base_keys.first;
+        const auto private_key = *current_session->base_keys.second;
+
         std::pair<guarded_ptr, guarded_ptr> derived;
+
         switch (mode) {
         case SERVER:
             {
-                derived = security::derive_server_key(*key, *current_session->public_key, *current_session->private_key);
+                derived = security::derive_server_key(*target_key, public_key, private_key);
                 break;
             }
         case CLIENT:
             {
-                derived = security::derive_client_key(*key, *current_session->public_key, *current_session->private_key);
+                derived = security::derive_client_key(*target_key, public_key, private_key);
                 break;
             }
         default:
@@ -622,6 +626,16 @@ namespace ze_kit
         SESSION_AVAILABLE_NO_RET(uuid);
         const auto current_session = library::sessions[uuid];
         debug_print("[ZE] Building derivable key for session: " + std::to_string(uuid));
+
+        auto keypair = security::build_derivable_key();
+
+        if (keypair.first == nullptr || keypair.second == nullptr) {
+            debug_print_cerr("[ZE] Failed to build derivable keys for session: " + std::to_string(uuid));
+            return;
+        }
+
+        current_session->base_keys = std::move(keypair);
+        debug_print("[ZE] Successfully built derivable keys for session: " + std::to_string(uuid));
     }
 
     void bridge::derive_hash_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid)
