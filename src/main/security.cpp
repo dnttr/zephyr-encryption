@@ -243,7 +243,7 @@ namespace ze_kit
         return memory::compare(received_hash.get_buffer(), computed->get_buffer(), HASH);
     }
 
-    guarded_ptr security::derive_key(const data &received_public_key)
+    guarded_ptr security::derive_hash_key(const data &received_public_key)
     {
         if (!util::is_data_valid(received_public_key))
         {
