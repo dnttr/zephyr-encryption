@@ -45,8 +45,10 @@ namespace ze_kit
         static void set_asymmetric_received_key(JNIEnv *jni, jobject, jlong uuid, jbyteArray key_buffer);
         static jbyteArray get_asymmetric_key(DEFAULT, UUID, jint mode);
 
-        static void set_public_key_ex_sh0(DEFAULT, UUID, jbyteArray key_buffer);
-        static jbyteArray get_public_key_ex_sh0(DEFAULT, UUID);
+        static void set_rv_public_key_sh0(DEFAULT, UUID, jbyteArray key_buffer);
+        static jbyteArray get_rv_public_key_sh0(DEFAULT, UUID);
+
+        static jbyteArray get_base_public_key_sh0(JNIEnv *jni, jobject, jlong uuid);
 
         static void derive_keys_sh0(DEFAULT, UUID, jint mode);
         static void derive_final_key_sh0(DEFAULT, UUID);

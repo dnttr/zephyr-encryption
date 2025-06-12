@@ -494,7 +494,7 @@ namespace ze_kit
         }
     }
 
-    void bridge::set_public_key_ex_sh0(JNIEnv *jni, [[maybe_unused]] jobject, jlong uuid, jbyteArray key_buffer)
+    void bridge::set_rv_public_key_sh0(JNIEnv *jni, [[maybe_unused]] jobject, jlong uuid, jbyteArray key_buffer)
     {
         SESSION_AVAILABLE_NO_RET(uuid);
         const auto current_session = library::sessions[uuid];
@@ -566,12 +566,22 @@ namespace ze_kit
         return util::data_to_byteArray(jni, hash.get());
     }
 
-    jbyteArray bridge::get_public_key_ex_sh0(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid)
+    jbyteArray bridge::get_rv_public_key_sh0(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid)
     {
         SESSION_AVAILABLE(uuid);
         const auto current_session = library::sessions[uuid];
 
-        const auto data = util::data_to_byteArray(jni, current_session->shared_key_0.get());
+        const auto data = util::data_to_byteArray(jni, current_session->received_public_key_0.get());
+
+        return data;
+    }
+
+    jbyteArray bridge::get_base_public_key_sh0(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid)
+    {
+        SESSION_AVAILABLE(uuid);
+        const auto current_session = library::sessions[uuid];
+
+        const auto data = util::data_to_byteArray(jni, current_session->shared_key_0_base.first.get());
 
         return data;
     }
