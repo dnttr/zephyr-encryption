@@ -32,26 +32,25 @@ namespace ze_kit
 
         static void build_key(DEFAULT, UUID, jint mode);
 
-        static void set_symmetric_key(DEFAULT, UUID, jbyteArray key_buffer);
-
-        static void set_asymmetric_key(DEFAULT, UUID, jint mode, jbyteArray key_buffer);
-
         static void set_nonce(DEFAULT, UUID, jint mode, jbyteArray nonce_buffer);
-
-        static jbyteArray get_symmetric_key(DEFAULT, UUID);
-
-        static jbyteArray get_asymmetric_key(DEFAULT, UUID, jint mode);
-
         static jbyteArray get_nonce(DEFAULT, UUID, jint mode);
 
-        static jbyteArray build_hash(DEFAULT, UUID, jbyteArray message_buffer);
+        static jbyteArray build_hash_sh0(DEFAULT, UUID, jbyteArray message_buffer);
+        static bool compare_hash_sh0(DEFAULT, UUID, jbyteArray hash_buffer, jbyteArray message_buffer);
 
-        static bool compare_hash(DEFAULT, UUID, jbyteArray hash_buffer, jbyteArray message_buffer);
+        static void set_symmetric_key(DEFAULT, UUID, jbyteArray key_buffer);
+        static jbyteArray get_symmetric_key(DEFAULT, UUID);
 
-        static void derive_secret_key(DEFAULT, UUID, jint mode, jbyteArray public_key_buffer);
+        static void set_asymmetric_key(DEFAULT, UUID, jint mode, jbyteArray key_buffer);
+        static void set_asymmetric_received_key(JNIEnv *jni, jobject, jlong uuid, jbyteArray key_buffer);
+        static jbyteArray get_asymmetric_key(DEFAULT, UUID, jint mode);
 
-        static void build_derivable_key(DEFAULT, UUID);
+        static void set_public_key_ex_sh0(DEFAULT, UUID, jbyteArray key_buffer);
+        static jbyteArray get_public_key_ex_sh0(DEFAULT, UUID);
 
-        static void derive_hash_key(DEFAULT, UUID);
+        static void derive_keys_sh0(DEFAULT, UUID, jint mode);
+        static void derive_final_key_sh0(DEFAULT, UUID);
+
+        static void build_base_key_sh0(DEFAULT, UUID);
     };
 }

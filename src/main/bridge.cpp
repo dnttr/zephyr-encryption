@@ -102,7 +102,7 @@ namespace ze_kit
             return nullptr;
         }
 
-        if (!current_session->shared_key) {
+        if (!current_session->shared_key_1) {
             debug_print_cerr("[ZE] Missing symmetric key for session: " + std::to_string(uuid));
             return nullptr;
         }
@@ -116,7 +116,7 @@ namespace ze_kit
             debug_print("[ZE] No AEAD data provided for session: " + std::to_string(uuid));
         }
 
-        const ze_kit::data &key = *current_session->shared_key;
+        const ze_kit::data &key = *current_session->shared_key_1;
         const ze_kit::data &nonce = current_session->get_symmetric_nonce();
 
         const guarded_ptr encrypted = security::encrypt_symmetric(key, *aead_data, *input_data, nonce);
@@ -149,7 +149,7 @@ namespace ze_kit
             return nullptr;
         }
 
-        if (!current_session->shared_key) {
+        if (!current_session->shared_key_1) {
             debug_print_cerr("[ZE] Missing symmetric key for session: " + std::to_string(uuid));
             return nullptr;
         }
@@ -161,7 +161,7 @@ namespace ze_kit
             aead_data = guarded_ptr(new data(nullptr, 0));
         }
 
-        const data &key = *current_session->shared_key;
+        const data &key = *current_session->shared_key_1;
         const data &nonce = current_session->get_symmetric_nonce();
 
         const guarded_ptr decrypted = security::decrypt_symmetric(key, *aead_data, *input_data, nonce);
@@ -192,7 +192,7 @@ namespace ze_kit
             return nullptr;
         }
 
-        if (!current_session->public_key || !current_session->private_key) {
+        if (!current_session->built_private_key || !current_session->received_public_key_2) {
             debug_print_cerr("[ZE] Missing asymmetric keys for session: " + std::to_string(uuid));
             return nullptr;
         }
@@ -205,8 +205,8 @@ namespace ze_kit
         const ze_kit::data &nonce = *current_session->asymmetric_nonce;
 
         const guarded_ptr encrypted = security::encrypt_asymmetric(
-            *current_session->public_key,
-            *current_session->private_key,
+            *current_session->received_public_key_2,
+            *current_session->built_public_key,
             *input_data,
             nonce);
 
@@ -236,7 +236,7 @@ namespace ze_kit
             return nullptr;
         }
 
-        if (!current_session->public_key || !current_session->private_key) {
+        if (!current_session->built_private_key || !current_session->received_public_key_2) {
             debug_print_cerr("[ZE] Missing asymmetric keys for session: " + std::to_string(uuid));
             return nullptr;
         }
@@ -249,8 +249,8 @@ namespace ze_kit
         const data &nonce = *current_session->asymmetric_nonce;
 
         const guarded_ptr decrypted = security::decrypt_asymmetric(
-            *current_session->public_key,
-            *current_session->private_key,
+            *current_session->built_private_key,
+            *current_session->received_public_key_2,
             *input_data,
             nonce);
 
@@ -297,16 +297,15 @@ namespace ze_kit
 
         if (mode == SYMMETRIC) {
             if (guarded_ptr key = security::build_key_symmetric()) {
-                current_session->shared_key = std::move(key);
+                current_session->shared_key_1 = std::move(key);
                 debug_print("[ZE] Successfully built symmetric key for session: " + std::to_string(uuid));
             } else {
                 debug_print_cerr("[ZE] Failed to build symmetric key for session: " + std::to_string(uuid));
             }
         } else if (mode == ASYMMETRIC) {
-            auto [pub_key, sec_key] = security::build_key_asymmetric();
-            if (pub_key && sec_key) {
-                current_session->public_key = std::move(pub_key);
-                current_session->private_key = std::move(sec_key);
+            if (auto [pub_key, sec_key] = security::build_key_asymmetric(); pub_key && sec_key) {
+                current_session->built_private_key = std::move(pub_key);
+                current_session->built_public_key = std::move(sec_key);
                 debug_print("[ZE] Successfully built asymmetric keys for session: " + std::to_string(uuid));
             } else {
                 debug_print_cerr("[ZE] Failed to build asymmetric keys for session: " + std::to_string(uuid));
@@ -339,7 +338,7 @@ namespace ze_kit
         }
 
         debug_print("[ZE] Setting symmetric key for session: " + std::to_string(uuid));
-        std::swap(current_session->shared_key, key);
+        std::swap(current_session->shared_key_1, key);
     }
 
     void bridge::set_asymmetric_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode, const jbyteArray key_buffer)
@@ -368,13 +367,13 @@ namespace ze_kit
         case PUBLIC:
             {
                 debug_print("[ZE] Setting asymmetric public key for session: " + std::to_string(uuid));
-                std::swap(current_session->public_key, key);
+                std::swap(current_session->built_private_key, key);
                 break;
             }
         case PRIVATE:
             {
                 debug_print("[ZE] Setting asymmetric secret key for session: " + std::to_string(uuid));
-                std::swap(current_session->private_key, key);
+                std::swap(current_session->built_public_key, key);
                 break;
             }
         default:
@@ -428,6 +427,26 @@ namespace ze_kit
         }
     }
 
+    void bridge::set_asymmetric_received_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, jbyteArray key_buffer)
+    {
+        SESSION_AVAILABLE_NO_RET(uuid);
+        const auto current_session = library::sessions[uuid];
+
+        if (key_buffer == nullptr) {
+            debug_print_cerr("[ZE] Provided key is null for session: " + std::to_string(uuid));
+            return;
+        }
+
+        auto key = util::byteArray_to_data(jni, key_buffer);
+        if (key == nullptr)
+        {
+            debug_print_cerr("[ZE] Failed to convert key buffer to ze_kit::data for session: " + std::to_string(uuid));
+            return;
+        }
+
+        std::swap(current_session->received_public_key_2, key);
+    }
+
     jbyteArray bridge::get_symmetric_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid)
     {
         SESSION_AVAILABLE(uuid);
@@ -435,12 +454,12 @@ namespace ze_kit
 
         const auto current_session = library::sessions[uuid];
 
-        if (!current_session->shared_key) {
+        if (!current_session->shared_key_1) {
             debug_print_cerr("[ZE] No symmetric key set for session: " + std::to_string(uuid));
             return nullptr;
         }
 
-        return util::data_to_byteArray(jni, current_session->shared_key.get());
+        return util::data_to_byteArray(jni, current_session->shared_key_1.get());
     }
 
     jbyteArray bridge::get_asymmetric_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode)
@@ -453,19 +472,19 @@ namespace ze_kit
         switch (mode) {
         case PUBLIC:
             {
-                if (!current_session->public_key) {
+                if (!current_session->built_private_key) {
                     debug_print_cerr("[ZE] No public key set for session: " + std::to_string(uuid));
                     return nullptr;
                 }
-                return util::data_to_byteArray(jni, current_session->public_key.get());
+                return util::data_to_byteArray(jni, current_session->built_private_key.get());
             }
         case PRIVATE:
             {
-                if (!current_session->private_key) {
+                if (!current_session->built_public_key) {
                     debug_print_cerr("[ZE] No secret key set for session: " + std::to_string(uuid));
                     return nullptr;
                 }
-                return util::data_to_byteArray(jni, current_session->private_key.get());
+                return util::data_to_byteArray(jni, current_session->built_public_key.get());
             }
         default:
             {
@@ -473,6 +492,14 @@ namespace ze_kit
                 return nullptr;
             }
         }
+    }
+
+    void bridge::set_public_key_ex_sh0(JNIEnv *jni, [[maybe_unused]] jobject, jlong uuid, jbyteArray key_buffer)
+    {
+        SESSION_AVAILABLE_NO_RET(uuid);
+        const auto current_session = library::sessions[uuid];
+
+        current_session->received_public_key_0 = util::byteArray_to_data(jni, key_buffer);
     }
 
     jbyteArray bridge::get_nonce(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode)
@@ -508,7 +535,7 @@ namespace ze_kit
         }
     }
 
-    jbyteArray bridge::build_hash(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jbyteArray message_buffer)
+    jbyteArray bridge::build_hash_sh0(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jbyteArray message_buffer)
     {
         SESSION_AVAILABLE(uuid);
         const auto current_session = library::sessions[uuid];
@@ -525,12 +552,12 @@ namespace ze_kit
             return nullptr;
         }
 
-        if (current_session->hash_key == nullptr) {
+        if (current_session->shared_key_0 == nullptr) {
             debug_print_cerr("[ZE] No hash key set for session: " + std::to_string(uuid));
             return nullptr;
         }
 
-        const auto hash = security::build_hash(*current_session->hash_key, *message_ptr);
+        const auto hash = security::build_hash_using_shared_key(*current_session->shared_key_0, *message_ptr);
         if (hash == nullptr) {
             debug_print_cerr("[ZE] Failed to build hash for session: " + std::to_string(uuid));
             return nullptr;
@@ -539,8 +566,18 @@ namespace ze_kit
         return util::data_to_byteArray(jni, hash.get());
     }
 
-    bool bridge::compare_hash(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jbyteArray hash_buffer,
-                             const jbyteArray message_buffer)
+    jbyteArray bridge::get_public_key_ex_sh0(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid)
+    {
+        SESSION_AVAILABLE(uuid);
+        const auto current_session = library::sessions[uuid];
+
+        const auto data = util::data_to_byteArray(jni, current_session->shared_key_0.get());
+
+        return data;
+    }
+
+    bool bridge::compare_hash_sh0(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid, const jbyteArray hash_buffer,
+                              const jbyteArray message_buffer)
     {
         SESSION_AVAILABLE_FAILURE_RET(uuid);
         const auto current_session = library::sessions[uuid];
@@ -559,50 +596,44 @@ namespace ze_kit
             return FAILURE;
         }
 
-        if (current_session->hash_key == nullptr) {
+        if (current_session->shared_key_0 == nullptr) {
             debug_print_cerr("[ZE] No hash key set for session: " + std::to_string(uuid));
             return FAILURE;
         }
 
-        return security::compare_hash(*current_session->hash_key, *hash_ptr, *message_ptr);
+        return security::compare_hash(*current_session->shared_key_0, *hash_ptr, *message_ptr);
     }
 
-    void bridge::derive_secret_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode, const jbyteArray public_key_buffer)
+    void bridge::derive_keys_sh0(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode)
     {
         SESSION_AVAILABLE_NO_RET(uuid);
         const auto current_session = library::sessions[uuid];
         debug_print("[ZE] Deriving secret key for session: " + std::to_string(uuid));
 
-        if (public_key_buffer == nullptr) {
+        if (current_session->received_public_key_0 == nullptr) {
             debug_print_cerr("[ZE] Provided public key is null for session: " + std::to_string(uuid));
             return;
         }
 
-        const auto target_key = util::byteArray_to_data(jni, public_key_buffer);
-        if (target_key == nullptr) {
-            debug_print_cerr("[ZE] Failed to convert public key to data for session: " + std::to_string(uuid));
-            return;
-        }
-
-        if (current_session->base_keys.first == nullptr || current_session->base_keys.second == nullptr) {
+        if (current_session->shared_key_0_base.first == nullptr || current_session->shared_key_0_base.second == nullptr) {
             debug_print_cerr("[ZE] No public or private BASE key set for session: " + std::to_string(uuid));
             return;
         }
 
-        const auto public_key = *current_session->base_keys.first;
-        const auto private_key = *current_session->base_keys.second;
+        const auto public_key = *current_session->shared_key_0_base.first;
+        const auto private_key = *current_session->shared_key_0_base.second;
 
         std::pair<guarded_ptr, guarded_ptr> derived;
 
         switch (mode) {
         case SERVER:
             {
-                derived = security::derive_server_key(*target_key, public_key, private_key);
+                derived = security::derive_server_key(*current_session->received_public_key_0, public_key, private_key);
                 break;
             }
         case CLIENT:
             {
-                derived = security::derive_client_key(*target_key, public_key, private_key);
+                derived = security::derive_client_key(*current_session->received_public_key_0, public_key, private_key);
                 break;
             }
         default:
@@ -617,46 +648,46 @@ namespace ze_kit
             return;
         }
 
-        current_session->derived_keys = std::move(derived);
+        current_session->shared_key_0_derivative = std::move(derived);
         debug_print("[ZE] Successfully derived secret key for session: " + std::to_string(uuid));
     }
 
-    void bridge::build_derivable_key([[maybe_unused]] JNIEnv *, [[maybe_unused]] jobject, const jlong uuid)
+    void bridge::build_base_key_sh0([[maybe_unused]] JNIEnv *, [[maybe_unused]] jobject, const jlong uuid)
     {
         SESSION_AVAILABLE_NO_RET(uuid);
         const auto current_session = library::sessions[uuid];
         debug_print("[ZE] Building derivable key for session: " + std::to_string(uuid));
 
-        auto keypair = security::build_derivable_key();
+        auto keypair = security::build_d_keypair();
 
         if (keypair.first == nullptr || keypair.second == nullptr) {
             debug_print_cerr("[ZE] Failed to build derivable keys for session: " + std::to_string(uuid));
             return;
         }
 
-        current_session->base_keys = std::move(keypair);
+        current_session->shared_key_0_base = std::move(keypair);
         debug_print("[ZE] Successfully built derivable keys for session: " + std::to_string(uuid));
     }
 
-    void bridge::derive_hash_key([[maybe_unused]] JNIEnv *, [[maybe_unused]] jobject, const jlong uuid)
+    void bridge::derive_final_key_sh0([[maybe_unused]] JNIEnv *, [[maybe_unused]] jobject, const jlong uuid)
     {
         SESSION_AVAILABLE_NO_RET(uuid);
         const auto current_session = library::sessions[uuid];
         debug_print("[ZE] Deriving hash key for session: " + std::to_string(uuid));
 
-        if (current_session->derived_keys.first == nullptr || current_session->derived_keys.second == nullptr) {
+        if (current_session->shared_key_0_derivative.first == nullptr || current_session->shared_key_0_derivative.second == nullptr) {
             debug_print_cerr("[ZE] Missing derived keys for session: " + std::to_string(uuid));
             return;
         }
 
-        auto hash_key = security::derive_hash_key(*current_session->derived_keys.second);
+        auto hash_key = security::derive_hash_key(*current_session->shared_key_0_derivative.second);
 
         if (hash_key == nullptr) {
             debug_print_cerr("[ZE] Failed to derive hash key for session: " + std::to_string(uuid));
             return;
         }
 
-        current_session->hash_key = std::move(hash_key);
+        current_session->shared_key_0 = std::move(hash_key);
         debug_print("[ZE] Successfully derived hash key for session: " + std::to_string(uuid));
     }
 }

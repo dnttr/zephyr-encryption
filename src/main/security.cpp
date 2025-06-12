@@ -195,7 +195,7 @@ namespace ze_kit
         return guarded_ptr(new data(key, SYMMETRIC_KEY));
     }
 
-    std::pair<guarded_ptr, guarded_ptr> security::build_derivable_key() //does such word even exist?
+    std::pair<guarded_ptr, guarded_ptr> security::build_d_keypair()
     {
         const auto public_key = memory::allocate(PUBLIC_KEY);
         const auto private_key = memory::allocate(PRIVATE_KEY);
@@ -208,10 +208,10 @@ namespace ze_kit
         guarded_ptr public_key_ptr(new data(public_key, PUBLIC_KEY));
         guarded_ptr private_key_ptr(new data(private_key, PRIVATE_KEY));
 
-        return std::pair(std::move(public_key_ptr), std::move(private_key_ptr));
+        return { std::move(public_key_ptr), std::move(private_key_ptr) };
     }
 
-    guarded_ptr security::build_hash(const data &secret_key, const data &buffer)
+    guarded_ptr security::build_hash_using_shared_key(const data &secret_key, const data &buffer)
     {
         if (!util::is_data_valid(secret_key, buffer))
         {
@@ -237,7 +237,7 @@ namespace ze_kit
             throw std::invalid_argument("Invalid arguments were provided");
         }
 
-        const guarded_ptr computed = build_hash(secret_key, buffer);
+        const guarded_ptr computed = build_hash_using_shared_key(secret_key, buffer);
 
         return memory::compare(received_hash.get_buffer(), computed->get_buffer(), HASH);
     }
@@ -285,7 +285,7 @@ namespace ze_kit
         guarded_ptr receive_ptr(new data(receive, SESSION));
         guarded_ptr transmission_ptr(new data(transmission, SESSION));
 
-        return std::pair(std::move(receive_ptr), std::move(transmission_ptr));
+        return { std::move(receive_ptr), std::move(transmission_ptr) };
     }
 
     std::pair<guarded_ptr, guarded_ptr> security::derive_server_key(const data &client_public_key, const data &server_public_key, const data &server_private_key)
@@ -309,7 +309,7 @@ namespace ze_kit
         guarded_ptr receive_ptr(new data(receive, SESSION));
         guarded_ptr transmission_ptr(new data(transmission, SESSION));
 
-        return std::pair(std::move(receive_ptr), std::move(transmission_ptr));
+        return { std::move(receive_ptr), std::move(transmission_ptr) };
     }
 
     std::pair<guarded_ptr, guarded_ptr> security::build_key_asymmetric()
@@ -328,6 +328,6 @@ namespace ze_kit
         guarded_ptr public_key_ptr(new data(public_key, PUBLIC_KEY));
         guarded_ptr private_key_ptr(new data(private_key, PRIVATE_KEY));
 
-        return std::pair(std::move(public_key_ptr), std::move(private_key_ptr));
+        return { std::move(public_key_ptr), std::move(private_key_ptr) };
     }
 }

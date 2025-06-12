@@ -10,16 +10,20 @@ namespace ze_kit
     class session
     {
     public:
-        guarded_ptr private_key;
-        guarded_ptr public_key;
-        guarded_ptr shared_key;
-        guarded_ptr hash_key;
+        guarded_ptr built_public_key;
+        guarded_ptr built_private_key;
 
-        std::pair<guarded_ptr, guarded_ptr> base_keys;
-        std::pair<guarded_ptr, guarded_ptr> derived_keys;
+        guarded_ptr received_public_key_0;
+        guarded_ptr received_public_key_2;
+
+        guarded_ptr shared_key_0; // for hashing
+        guarded_ptr shared_key_1; // for symmetric encryption
 
         guarded_ptr symmetric_nonce;
         guarded_ptr asymmetric_nonce;
+
+        std::pair<guarded_ptr, guarded_ptr> shared_key_0_base;
+        std::pair<guarded_ptr, guarded_ptr> shared_key_0_derivative;
 
         [[nodiscard]] const data& get_symmetric_nonce() const {
             return symmetric_nonce ? *symmetric_nonce : empty_data;
