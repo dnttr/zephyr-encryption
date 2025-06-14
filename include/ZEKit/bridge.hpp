@@ -28,6 +28,10 @@ namespace ze_kit
 
         static jbyteArray decrypt_asymmetric(DEFAULT, UUID, jbyteArray message_buffer);
 
+        static jbyteArray get_exchange_message(DEFAULT, UUID);
+
+        static void set_exchange_message(DEFAULT, UUID, jbyteArray message_buffer);
+
         static void build_nonce(DEFAULT, UUID, jint mode);
 
         static void build_key(DEFAULT, UUID, jint mode);
@@ -48,7 +52,8 @@ namespace ze_kit
         static void set_rv_public_key_sh0(DEFAULT, UUID, jbyteArray key_buffer);
         static jbyteArray get_rv_public_key_sh0(DEFAULT, UUID);
 
-        static jbyteArray get_base_public_key_sh0(JNIEnv *jni, jobject, jlong uuid);
+        static jbyteArray get_base_public_key_sh0(DEFAULT, UUID);
+
 
         static void derive_keys_sh0(DEFAULT, UUID, jint mode);
         static void derive_final_key_sh0(DEFAULT, UUID);
