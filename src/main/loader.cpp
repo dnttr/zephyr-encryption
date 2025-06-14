@@ -30,7 +30,7 @@ const std::unordered_multimap<std::string, znb_kit::jni_bridge_reference> ze_kit
     {"ffi_ze_compare_hash_sh0", znb_kit::jni_bridge_reference(&bridge::compare_hash_sh0, {"long", "byte[]", "byte[]"})},
     {"ffi_ze_build_base_key_sh0", znb_kit::jni_bridge_reference(&bridge::build_base_key_sh0, {"long"})},
     {"ffi_ze_derive_keys_sh0", znb_kit::jni_bridge_reference(&bridge::derive_keys_sh0, {"long", "int"})},
-    {"ffi_ze_derive_final_key_sh0", znb_kit::jni_bridge_reference(&bridge::derive_final_key_sh0, {"long"})},
+    {"ffi_ze_derive_final_key_sh0", znb_kit::jni_bridge_reference(&bridge::derive_final_key_sh0, {"long", "int"})},
     {"ffi_ze_get_rv_public_key_sh0", znb_kit::jni_bridge_reference(&bridge::get_rv_public_key_sh0, {"long"})},
     {"ffi_ze_set_rv_public_key_sh0", znb_kit::jni_bridge_reference(&bridge::set_rv_public_key_sh0, {"long", "byte[]"})},
     {"ffi_ze_get_base_public_key_sh0", znb_kit::jni_bridge_reference(&bridge::get_base_public_key_sh0, {"long"})},
