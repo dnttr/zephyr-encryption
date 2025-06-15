@@ -410,7 +410,6 @@ namespace ze_kit
         }
 
         guarded_ptr decrypted_key = decrypt_asymmetric_message(current_session, input_data);
-
         if (!decrypted_key)
         {
             debug_print_cerr("[ZE] Failed to decrypt exchange message for session: " + std::to_string(uuid));
@@ -418,6 +417,7 @@ namespace ze_kit
         }
 
         current_session->shared_key_1 = std::move(decrypted_key);
+
         debug_print("[ZE] Successfully set exchange message for session: " + std::to_string(uuid));
     }
 
