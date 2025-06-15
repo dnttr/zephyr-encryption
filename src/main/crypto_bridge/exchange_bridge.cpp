@@ -36,12 +36,12 @@ namespace ze_kit
         return result;
     }
 
-    void exchange_bridge::process_key_exchange(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid,
+    jint exchange_bridge::process_key_exchange(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid,
                                       const jbyteArray message_buffer)
     {
         if (!validate_session(uuid))
         {
-            return;
+            return FAILURE;
         }
         const auto current_session = library::sessions[uuid];
         debug_print("[ZE] Setting exchange message for session: " + std::to_string(uuid));
@@ -49,7 +49,7 @@ namespace ze_kit
         if (message_buffer == nullptr)
         {
             debug_print_cerr("[ZE] Provided exchange message is null for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         const guarded_ptr input_data = util::byteArray_to_data(jni, message_buffer);
@@ -57,30 +57,32 @@ namespace ze_kit
         {
             debug_print_cerr(
                 "[ZE] Failed to convert exchange message to ze_kit::data for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         if (!current_session->built_private_key || !current_session->received_public_key_2)
         {
             debug_print_cerr("[ZE] Missing asymmetric keys for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         if (!current_session->asymmetric_nonce)
         {
             debug_print_cerr("[ZE] Missing asymmetric nonce for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         guarded_ptr decrypted_key = decrypt_asymmetric_message(current_session, input_data);
         if (!decrypted_key)
         {
             debug_print_cerr("[ZE] Failed to decrypt exchange message for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         current_session->shared_key_1 = std::move(decrypted_key);
 
         debug_print("[ZE] Successfully set exchange message for session: " + std::to_string(uuid));
+
+        return SUCCESS;
     }
 }

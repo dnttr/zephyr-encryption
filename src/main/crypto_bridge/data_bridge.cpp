@@ -8,12 +8,12 @@
 
 namespace ze_kit
 {
-    void data_bridge::generate_nonce([[maybe_unused]] JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid,
+    jint data_bridge::generate_nonce([[maybe_unused]] JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid,
                                 const jint mode)
     {
         if (!validate_session(uuid))
         {
-            return;
+            return FAILURE;
         }
         const auto current_session = library::sessions[uuid];
         debug_print("[ZE] Building nonce for session: " + std::to_string(uuid));
@@ -29,6 +29,7 @@ namespace ze_kit
             else
             {
                 debug_print_cerr("[ZE] Failed to build symmetric nonce for session: " + std::to_string(uuid));
+                return FAILURE;
             }
         }
         else if (mode == static_cast<jint>(EncryptionMode::ASYMMETRIC))
@@ -42,20 +43,24 @@ namespace ze_kit
             else
             {
                 debug_print_cerr("[ZE] Failed to build asymmetric nonce for session: " + std::to_string(uuid));
+                return FAILURE;
             }
         }
         else
         {
             debug_print_cerr("[ZE] Invalid mode for nonce building: " + std::to_string(mode));
+            return FAILURE;
         }
+
+        return SUCCESS;
     }
 
-    void data_bridge::generate_keys([[maybe_unused]] JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid,
+    jint data_bridge::generate_keys([[maybe_unused]] JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid,
                                const jint mode)
     {
         if (!validate_session(uuid))
         {
-            return;
+            return FAILURE;
         }
         const auto current_session = library::sessions[uuid];
         debug_print("[ZE] Building key for session: " + std::to_string(uuid));
@@ -70,6 +75,7 @@ namespace ze_kit
             else
             {
                 debug_print_cerr("[ZE] Failed to build symmetric key for session: " + std::to_string(uuid));
+                return FAILURE;
             }
         }
         else if (mode == static_cast<jint>(EncryptionMode::ASYMMETRIC))
@@ -83,20 +89,24 @@ namespace ze_kit
             else
             {
                 debug_print_cerr("[ZE] Failed to build asymmetric keys for session: " + std::to_string(uuid));
+                return FAILURE;
             }
         }
         else
         {
             debug_print_cerr("[ZE] Invalid mode for key building: " + std::to_string(mode));
+            return FAILURE;
         }
+
+        return SUCCESS;
     }
 
-    void data_bridge::set_encryption_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid,
+    jint data_bridge::set_encryption_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid,
                                     const jbyteArray key_buffer)
     {
         if (!validate_session(uuid))
         {
-            return;
+            return FAILURE;
         }
         const auto current_session = library::sessions[uuid];
         debug_print("[ZE] Setting key for session: " + std::to_string(uuid));
@@ -104,32 +114,34 @@ namespace ze_kit
         if (key_buffer == nullptr)
         {
             debug_print_cerr("[ZE] Provided key is null for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         auto key = util::byteArray_to_data(jni, key_buffer);
         if (key == nullptr)
         {
             debug_print_cerr("[ZE] Failed to convert key buffer to ze_kit::data for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         if (!security::is_key_buffer_valid(0, key->get_size()))
         {
             debug_print_cerr("[ZE] Provided key is invalid for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         debug_print("[ZE] Setting symmetric key for session: " + std::to_string(uuid));
         std::swap(current_session->shared_key_1, key);
+
+        return SUCCESS;
     }
 
-    void data_bridge::set_keypair(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode,
+    jint data_bridge::set_keypair(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode,
                              const jbyteArray key_buffer)
     {
         if (!validate_session(uuid))
         {
-            return;
+            return FAILURE;
         }
         const auto current_session = library::sessions[uuid];
         debug_print("[ZE] Setting key for session: " + std::to_string(uuid));
@@ -137,20 +149,20 @@ namespace ze_kit
         if (key_buffer == nullptr)
         {
             debug_print_cerr("[ZE] Provided key is null for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         auto key = util::byteArray_to_data(jni, key_buffer);
         if (key == nullptr)
         {
             debug_print_cerr("[ZE] Failed to convert key buffer to ze_kit::data for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         if (!security::is_key_buffer_valid(1, key->get_size()))
         {
             debug_print_cerr("[ZE] Provided key is invalid for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         switch (mode)
@@ -170,17 +182,19 @@ namespace ze_kit
         default:
             {
                 debug_print_cerr("[ZE] Invalid mode for asymmetric key setting: " + std::to_string(mode));
-                break;
+                return FAILURE;
             }
         }
+
+        return SUCCESS;
     }
 
-    void data_bridge::set_nonce(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode,
+    jint data_bridge::set_nonce(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode,
                            const jbyteArray nonce_buffer)
     {
         if (!validate_session(uuid))
         {
-            return;
+            return FAILURE;
         }
         const auto current_session = library::sessions[uuid];
         debug_print("[ZE] Setting nonce for session: " + std::to_string(uuid));
@@ -188,7 +202,7 @@ namespace ze_kit
         if (nonce_buffer == nullptr)
         {
             debug_print_cerr("[ZE] Provided nonce is null for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         auto nonce = util::byteArray_to_data(jni, nonce_buffer);
@@ -196,13 +210,13 @@ namespace ze_kit
         {
             debug_print_cerr(
                 "[ZE] Failed to convert nonce buffer to ze_kit::data for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         if (!security::is_nonce_buffer_valid(mode, nonce->get_size()))
         {
             debug_print_cerr("[ZE] Provided nonce is invalid for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         switch (mode)
@@ -222,34 +236,41 @@ namespace ze_kit
         default:
             {
                 debug_print_cerr("[ZE] Invalid mode for nonce setting: " + std::to_string(mode));
-                break;
+                return FAILURE;
             }
         }
+
+        return SUCCESS;
     }
 
-    void data_bridge::set_partner_public_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid,
+    jint data_bridge::set_partner_public_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid,
                                         const jbyteArray key_buffer)
     {
         if (!validate_session(uuid))
         {
-            return;
+            return FAILURE;
         }
         const auto current_session = library::sessions[uuid];
+
+        debug_print("[ZE] Setting public key for session: " + std::to_string(uuid));
 
         if (key_buffer == nullptr)
         {
             debug_print_cerr("[ZE] Provided key is null for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         auto key = util::byteArray_to_data(jni, key_buffer);
         if (key == nullptr)
         {
             debug_print_cerr("[ZE] Failed to convert key buffer to ze_kit::data for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         std::swap(current_session->received_public_key_2, key);
+
+        debug_print("[ZE] Successfully set public key for session: " + std::to_string(uuid));
+        return SUCCESS;
     }
 
     jbyteArray data_bridge::get_encryption_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid)
@@ -268,7 +289,16 @@ namespace ze_kit
             return nullptr;
         }
 
-        return util::data_to_byteArray(jni, current_session->shared_key_1.get());
+        const auto array = util::data_to_byteArray(jni, current_session->shared_key_1.get());
+
+        if (array == nullptr)
+        {
+            debug_print_cerr("[ZE] Failed to convert symmetric key to byte array for session: " + std::to_string(uuid));
+            return nullptr;
+        }
+
+        debug_print("[ZE] Successfully retrieved symmetric key for session: " + std::to_string(uuid));
+        return array;
     }
 
     jbyteArray data_bridge::get_keypair(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid, const jint mode)
@@ -290,7 +320,18 @@ namespace ze_kit
                     debug_print_cerr("[ZE] No public key set for session: " + std::to_string(uuid));
                     return nullptr;
                 }
-                return util::data_to_byteArray(jni, current_session->built_public_key.get());
+
+                const auto array = util::data_to_byteArray(jni, current_session->built_public_key.get());
+
+                if (array == nullptr)
+                {
+                    debug_print_cerr("[ZE] Failed to convert public key to byte array for session: " + std::to_string(uuid));
+                    return nullptr;
+                }
+
+                debug_print("[ZE] Successfully retrieved public key for session: " + std::to_string(uuid));
+
+                return array;
             }
         case static_cast<jint>(KeyType::PRIVATE):
             {
@@ -299,7 +340,18 @@ namespace ze_kit
                     debug_print_cerr("[ZE] No private key set for session: " + std::to_string(uuid));
                     return nullptr;
                 }
-                return util::data_to_byteArray(jni, current_session->built_private_key.get());
+
+                const auto array = util::data_to_byteArray(jni, current_session->built_private_key.get());
+
+                if (array == nullptr)
+                {
+                    debug_print_cerr("[ZE] Failed to convert private key to byte array for session: " + std::to_string(uuid));
+                    return nullptr;
+                }
+
+                debug_print("[ZE] Successfully retrieved private key for session: " + std::to_string(uuid));
+
+                return array;
             }
         default:
             {
@@ -328,7 +380,16 @@ namespace ze_kit
                     debug_print_cerr("[ZE] No symmetric nonce set for session: " + std::to_string(uuid));
                     return nullptr;
                 }
-                return util::data_to_byteArray(jni, current_session->symmetric_nonce.get());
+                const auto array = util::data_to_byteArray(jni, current_session->symmetric_nonce.get());
+
+                if (array == nullptr)
+                {
+                    debug_print_cerr("[ZE] Failed to convert symmetric nonce to byte array for session: " + std::to_string(uuid));
+                    return nullptr;
+                }
+
+                debug_print("[ZE] Successfully retrieved symmetric nonce for session: " + std::to_string(uuid));
+                return array;
             }
         case static_cast<jint>(EncryptionMode::ASYMMETRIC):
             {
@@ -338,7 +399,17 @@ namespace ze_kit
                     debug_print_cerr("[ZE] No asymmetric nonce set for session: " + std::to_string(uuid));
                     return nullptr;
                 }
-                return util::data_to_byteArray(jni, current_session->asymmetric_nonce.get());
+
+                const auto array = util::data_to_byteArray(jni, current_session->asymmetric_nonce.get());
+
+                if (array == nullptr)
+                {
+                    debug_print_cerr("[ZE] Failed to convert asymmetric nonce to byte array for session: " + std::to_string(uuid));
+                    return nullptr;
+                }
+
+                debug_print("[ZE] Successfully retrieved asymmetric nonce for session: " + std::to_string(uuid));
+                return array;
             }
         default:
             {

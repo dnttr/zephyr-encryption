@@ -12,6 +12,6 @@ namespace ze_kit
     {
     public:
         static jbyteArray create_key_exchange(DEFAULT, UUID);
-        static void process_key_exchange(DEFAULT, UUID, jbyteArray message_buffer);
+        static jint process_key_exchange(DEFAULT, UUID, jbyteArray message_buffer);
     };
 }

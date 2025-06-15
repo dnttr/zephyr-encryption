@@ -8,32 +8,34 @@
 
 namespace ze_kit
 {
-    void signing_bridge::set_signing_public_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid,
+    jint signing_bridge::set_signing_public_key(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid,
                                    const jbyteArray key_buffer)
     {
         if (!validate_session(uuid))
         {
-            return;
+            return FAILURE;
         }
         const auto current_session = library::sessions[uuid];
 
         if (key_buffer == nullptr)
         {
             debug_print_cerr("[ZE] Provided key is null for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         auto key_data = util::byteArray_to_data(jni, key_buffer);
         if (key_data == nullptr)
         {
             debug_print_cerr("[ZE] Failed to convert key buffer to ze_kit::data for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         current_session->received_public_key_0 = std::move(key_data);
+
+        return SUCCESS;
     }
 
-     jbyteArray signing_bridge::create_signature(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid,
+    jbyteArray signing_bridge::create_signature(JNIEnv *jni, [[maybe_unused]] jobject, const jlong uuid,
                                         const jbyteArray message_buffer)
     {
         if (!validate_session(uuid))
@@ -107,7 +109,7 @@ namespace ze_kit
         return util::data_to_byteArray(jni, current_session->shared_key_0_base.first.get());
     }
 
-    bool signing_bridge::verify_signature(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid,
+    jint signing_bridge::verify_signature(JNIEnv *jni, [[maybe_unused]] jobject object, const jlong uuid,
                                   const jbyteArray hash_buffer,
                                   const jbyteArray message_buffer)
     {
@@ -145,15 +147,16 @@ namespace ze_kit
         debug_print(
             "[ZE] Hash comparison result for session: " + std::to_string(uuid) + " - " + (integrity ? "MATCH" :
                 "NO MATCH"));
-        return integrity;
+
+        return integrity ? SUCCESS : FAILURE;
     }
 
-    void signing_bridge::derive_signing_keys([[maybe_unused]] JNIEnv *, [[maybe_unused]] jobject, const jlong uuid,
+    jint signing_bridge::derive_signing_keys([[maybe_unused]] JNIEnv *, [[maybe_unused]] jobject, const jlong uuid,
                                      const jint mode)
     {
         if (!validate_session(uuid))
         {
-            return;
+            return FAILURE;
         }
         const auto current_session = library::sessions[uuid];
         debug_print("[ZE] Deriving secret key for session: " + std::to_string(uuid));
@@ -161,13 +164,13 @@ namespace ze_kit
         if (current_session->received_public_key_0 == nullptr)
         {
             debug_print_cerr("[ZE] Provided public key is null for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         if (current_session->shared_key_0_base.first == nullptr || current_session->shared_key_0_base.second == nullptr)
         {
             debug_print_cerr("[ZE] No public or private BASE key set for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         const auto public_key = *current_session->shared_key_0_base.first;
@@ -190,25 +193,27 @@ namespace ze_kit
         default:
             {
                 debug_print_cerr("[ZE] Invalid mode for deriving secret key: " + std::to_string(mode));
-                return;
+                return FAILURE;
             }
         }
 
         if (derived.first == nullptr || derived.second == nullptr)
         {
             debug_print_cerr("[ZE] Failed to derive keys for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         current_session->shared_key_0_derivative = std::move(derived);
         debug_print("[ZE] Successfully derived secret key for session: " + std::to_string(uuid));
+
+        return SUCCESS;
     }
 
-    void signing_bridge::generate_signing_keypair([[maybe_unused]] JNIEnv *, [[maybe_unused]] jobject, const jlong uuid)
+    jint signing_bridge::generate_signing_keypair([[maybe_unused]] JNIEnv *, [[maybe_unused]] jobject, const jlong uuid)
     {
         if (!validate_session(uuid))
         {
-            return;
+            return FAILURE;
         }
         const auto current_session = library::sessions[uuid];
         debug_print("[ZE] Building derivable key for session: " + std::to_string(uuid));
@@ -218,19 +223,21 @@ namespace ze_kit
         if (keypair.first == nullptr || keypair.second == nullptr)
         {
             debug_print_cerr("[ZE] Failed to build derivable keys for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         current_session->shared_key_0_base = std::move(keypair);
         debug_print("[ZE] Successfully built derivable keys for session: " + std::to_string(uuid));
+
+        return SUCCESS;
     }
 
-    void signing_bridge::finalize_signing_key([[maybe_unused]] JNIEnv *, [[maybe_unused]] jobject, const jlong uuid,
+    jint signing_bridge::finalize_signing_key([[maybe_unused]] JNIEnv *, [[maybe_unused]] jobject, const jlong uuid,
                                       const jint mode)
     {
         if (!validate_session(uuid))
         {
-            return;
+            return FAILURE;
         }
         const auto current_session = library::sessions[uuid];
         debug_print("[ZE] Deriving hash key for session: " + std::to_string(uuid));
@@ -239,7 +246,7 @@ namespace ze_kit
             == nullptr)
         {
             debug_print_cerr("[ZE] Missing derived keys for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         guarded_ptr hash_key;
@@ -259,7 +266,7 @@ namespace ze_kit
         default:
             {
                 debug_print_cerr("[ZE] Invalid mode for deriving hash key: " + std::to_string(mode));
-                return;
+                return FAILURE;
             }
         }
 
@@ -267,10 +274,12 @@ namespace ze_kit
         if (hash_key == nullptr)
         {
             debug_print_cerr("[ZE] Failed to derive hash key for session: " + std::to_string(uuid));
-            return;
+            return FAILURE;
         }
 
         current_session->shared_key_0 = std::move(hash_key);
         debug_print("[ZE] Successfully derived hash key for session: " + std::to_string(uuid));
+
+        return SUCCESS;
     }
 }
