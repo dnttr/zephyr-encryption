@@ -64,19 +64,6 @@ namespace ze_kit
     {
         if (!util::is_data_valid(key, buffer, nonce))
         {
-            if (nonce.get_buffer() == nullptr)
-            {
-                std::cerr << "[ZE] Provided nonce is null" << std::endl;
-            }
-            if (buffer.get_buffer() == nullptr)
-            {
-                std::cerr << "[ZE] Provided buffer is null" << std::endl;
-            }
-            if (key.get_buffer() == nullptr)
-            {
-                std::cerr << "[ZE] Provided key is null" << std::endl;
-            }
-
             throw std::invalid_argument("Invalid arguments were provided");
         }
 
