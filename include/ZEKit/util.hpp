@@ -121,4 +121,50 @@ namespace ze_kit
             return result;
         }
     };
+
+    inline guarded_ptr encrypt_asymmetric_message(const session *current_session, const guarded_ptr &message_data)
+    {
+        if (!current_session || !message_data)
+        {
+            return guarded_ptr(nullptr);
+        }
+
+        if (!current_session->asymmetric_nonce ||
+            !current_session->received_public_key_2 ||
+            !current_session->built_private_key)
+        {
+            return guarded_ptr(nullptr);
+        }
+
+        const data &nonce = *current_session->asymmetric_nonce;
+
+        return security::encrypt_asymmetric(
+            *current_session->received_public_key_2,
+            *current_session->built_private_key,
+            *message_data,
+            nonce);
+    }
+
+    inline guarded_ptr decrypt_asymmetric_message(const session *current_session, const guarded_ptr &message_data)
+    {
+        if (!current_session || !message_data)
+        {
+            return guarded_ptr(nullptr);
+        }
+
+        if (!current_session->asymmetric_nonce ||
+            !current_session->received_public_key_2 ||
+            !current_session->built_private_key)
+        {
+            return guarded_ptr(nullptr);
+        }
+
+        const data &nonce = *current_session->asymmetric_nonce;
+
+        return security::decrypt_asymmetric(
+            *current_session->received_public_key_2,
+            *current_session->built_private_key,
+            *message_data,
+            nonce);
+    }
 }

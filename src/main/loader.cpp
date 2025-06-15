@@ -5,42 +5,49 @@
 #include "ZEKit/loader.hpp"
 
 #include "jni.h"
-#include "ZEKit/bridge.hpp"
 
 #include "ZEKit/library.hpp"
 #include "ZEKit/security.hpp"
+#include "ZEKit/crypto_bridge/data_bridge.hpp"
+#include "ZEKit/crypto_bridge/encryption_bridge.hpp"
+#include "ZEKit/crypto_bridge/exchange_bridge.hpp"
+#include "ZEKit/crypto_bridge/session_bridge.hpp"
+#include "ZEKit/crypto_bridge/signing_bridge.hpp"
 #include "ZNBKit/vm_management.hpp"
 
 const std::unordered_multimap<std::string, znb_kit::jni_bridge_reference> ze_kit::loader::methods = {
-    {"ffi_zm_open_session", znb_kit::jni_bridge_reference(&bridge::open_session, {})},
-    {"ffi_zm_close_session", znb_kit::jni_bridge_reference(&bridge::close_session, {"long"})},
-    {"ffi_ze_encrypt_symmetric", znb_kit::jni_bridge_reference(&bridge::encrypt_symmetric, {"long", "byte[]", "byte[]"})},
-    {"ffi_ze_decrypt_symmetric", znb_kit::jni_bridge_reference(&bridge::decrypt_symmetric, {"long", "byte[]", "byte[]"})},
-    {"ffi_ze_encrypt_asymmetric", znb_kit::jni_bridge_reference(&bridge::encrypt_asymmetric, {"long", "byte[]"})},
-    {"ffi_ze_decrypt_asymmetric", znb_kit::jni_bridge_reference(&bridge::decrypt_asymmetric, {"long", "byte[]"})},
-    {"ffi_ze_nonce", znb_kit::jni_bridge_reference(&bridge::build_nonce, {"long", "int"})},
-    {"ffi_ze_key", znb_kit::jni_bridge_reference(&bridge::build_key, {"long", "int"})},
-    {"ffi_ze_set_symmetric_key", znb_kit::jni_bridge_reference(&bridge::set_symmetric_key, {"long", "byte[]"})},
-    {"ffi_ze_set_asymmetric_key", znb_kit::jni_bridge_reference(&bridge::set_asymmetric_key, {"long","int", "byte[]"})},
-    {"ffi_ze_set_nonce", znb_kit::jni_bridge_reference(&bridge::set_nonce, {"long", "int", "byte[]"})},
-    {"ffi_ze_get_symmetric_key", znb_kit::jni_bridge_reference(&bridge::get_symmetric_key, {"long"})},
-    {"ffi_ze_get_asymmetric_key", znb_kit::jni_bridge_reference(&bridge::get_asymmetric_key, {"long", "int"})},
-    {"ffi_ze_get_nonce", znb_kit::jni_bridge_reference(&bridge::get_nonce, {"long", "int"})},
-    {"ffi_ze_build_hash_sh0", znb_kit::jni_bridge_reference(&bridge::build_hash_sh0, {"long", "byte[]"})},
-    {"ffi_ze_compare_hash_sh0", znb_kit::jni_bridge_reference(&bridge::compare_hash_sh0, {"long", "byte[]", "byte[]"})},
-    {"ffi_ze_build_base_key_sh0", znb_kit::jni_bridge_reference(&bridge::build_base_key_sh0, {"long"})},
-    {"ffi_ze_derive_keys_sh0", znb_kit::jni_bridge_reference(&bridge::derive_keys_sh0, {"long", "int"})},
-    {"ffi_ze_derive_final_key_sh0", znb_kit::jni_bridge_reference(&bridge::derive_final_key_sh0, {"long", "int"})},
-    {"ffi_ze_get_rv_public_key_sh0", znb_kit::jni_bridge_reference(&bridge::get_rv_public_key_sh0, {"long"})},
-    {"ffi_ze_set_rv_public_key_sh0", znb_kit::jni_bridge_reference(&bridge::set_rv_public_key_sh0, {"long", "byte[]"})},
-    {"ffi_ze_get_base_public_key_sh0", znb_kit::jni_bridge_reference(&bridge::get_base_public_key_sh0, {"long"})},
-    {"ffi_ze_set_asymmetric_received_key", znb_kit::jni_bridge_reference(&bridge::set_asymmetric_received_key, {"long", "byte[]"})},
-    {"ffi_ze_get_exchange_message", znb_kit::jni_bridge_reference(&bridge::get_exchange_message, {"long"})},
-    {"ffi_ze_set_exchange_message", znb_kit::jni_bridge_reference(&bridge::set_exchange_message, {"long", "byte[]"})},
-    {"ffi_ze_close", znb_kit::jni_bridge_reference(&bridge::close_lib, {})}
+    {"ffi_ze_create_session", znb_kit::jni_bridge_reference(&session_bridge::create_session, {})},
+    {"ffi_ze_delete_session", znb_kit::jni_bridge_reference(&session_bridge::delete_session, {"long"})},
+    {"ffi_ze_close_library", znb_kit::jni_bridge_reference(&session_bridge::close_library, {})},
+
+    {"ffi_ze_encrypt_data", znb_kit::jni_bridge_reference(&encryption_bridge::encrypt_data, {"long", "byte[]", "byte[]"})},
+    {"ffi_ze_decrypt_data", znb_kit::jni_bridge_reference(&encryption_bridge::decrypt_data, {"long", "byte[]", "byte[]"})},
+    {"ffi_ze_encrypt_with_public_key", znb_kit::jni_bridge_reference(&encryption_bridge::encrypt_with_public_key, {"long", "byte[]"})},
+    {"ffi_ze_decrypt_with_private_key", znb_kit::jni_bridge_reference(&encryption_bridge::decrypt_with_private_key, {"long", "byte[]"})},
+
+    {"ffi_ze_generate_nonce", znb_kit::jni_bridge_reference(&data_bridge::generate_nonce, {"long", "int"})},
+    {"ffi_ze_get_nonce", znb_kit::jni_bridge_reference(&data_bridge::get_nonce, {"long", "int"})},
+    {"ffi_ze_set_nonce", znb_kit::jni_bridge_reference(&data_bridge::set_nonce, {"long", "int", "byte[]"})},
+
+    {"ffi_ze_generate_keys", znb_kit::jni_bridge_reference(&data_bridge::generate_keys, {"long", "int"})},
+    {"ffi_ze_get_keypair", znb_kit::jni_bridge_reference(&data_bridge::get_keypair, {"long", "int"})},
+
+    {"ffi_ze_set_partner_public_key", znb_kit::jni_bridge_reference(&data_bridge::set_partner_public_key, {"long", "byte[]"})},
+
+    {"ffi_ze_create_signature", znb_kit::jni_bridge_reference(&signing_bridge::create_signature, {"long", "byte[]"})},
+    {"ffi_ze_verify_signature", znb_kit::jni_bridge_reference(&signing_bridge::verify_signature, {"long", "byte[]", "byte[]"})},
+
+    {"ffi_ze_generate_signing_keypair", znb_kit::jni_bridge_reference(&signing_bridge::generate_signing_keypair, {"long"})},
+    {"ffi_ze_derive_signing_keys", znb_kit::jni_bridge_reference(&signing_bridge::derive_signing_keys, {"long", "int"})},
+    {"ffi_ze_finalize_signing_key", znb_kit::jni_bridge_reference(&signing_bridge::finalize_signing_key, {"long", "int"})},
+    {"ffi_ze_set_signing_public_key", znb_kit::jni_bridge_reference(&signing_bridge::set_signing_public_key, {"long", "byte[]"})},
+    {"ffi_ze_get_base_signing_key", znb_kit::jni_bridge_reference(&signing_bridge::get_base_signing_key, {"long"})},
+
+    {"ffi_ze_create_key_exchange", znb_kit::jni_bridge_reference(&exchange_bridge::create_key_exchange, {"long"})},
+    {"ffi_ze_process_key_exchange", znb_kit::jni_bridge_reference(&exchange_bridge::process_key_exchange, {"long", "byte[]"})}
 };
 
-const std::string ze_kit::loader::name = "org/dnttr/zephyr/network/bridge/ZEKit";
+const std::string ze_kit::loader::name = "org/dnttr/zephyr/network/bridge/internal/ZEKit";
 
 extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *reserved) {
     ze_kit::library::initialize();

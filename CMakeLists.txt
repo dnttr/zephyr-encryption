@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.31.6)
 
-project(zephyr-encryption VERSION 1.0.2 LANGUAGES C CXX)
+project(zephyr-encryption VERSION 1.0.3 LANGUAGES C CXX)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-diagnostics-show-template-tree")
@@ -20,8 +20,12 @@ set(SOURCE_FILES
         src/main/memory.cpp
         src/main/security.cpp
         src/main/loader.cpp
-        src/main/bridge.cpp
         src/main/session.cpp
+        src/main/crypto_bridge/data_bridge.cpp
+        src/main/crypto_bridge/encryption_bridge.cpp
+        src/main/crypto_bridge/exchange_bridge.cpp
+        src/main/crypto_bridge/session_bridge.cpp
+        src/main/crypto_bridge/signing_bridge.cpp
 )
 
 include_directories(
