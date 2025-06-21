@@ -4,43 +4,30 @@ project(zephyr-encryption VERSION 1.0.4 LANGUAGES C CXX)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-diagnostics-show-template-tree")
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU") # For GCC
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-backtrace-limit=0")
 endif()
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-include(${CMAKE_SOURCE_DIR}/tools/Dependencies.cmake)
-include(${CMAKE_SOURCE_DIR}/tools/Patch.cmake)
 
-#------------------------ Library ------------------------#
+include(${CMAKE_SOURCE_DIR}/cmake/Dependencies.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/AdjustPath.cmake)
 
-set(SOURCE_FILES
-        src/main/library.cpp
-        src/main/memory.cpp
-        src/main/security.cpp
-        src/main/loader.cpp
-        src/main/session.cpp
-        src/main/crypto_bridge/data_bridge.cpp
-        src/main/crypto_bridge/encryption_bridge.cpp
-        src/main/crypto_bridge/exchange_bridge.cpp
-        src/main/crypto_bridge/session_bridge.cpp
-        src/main/crypto_bridge/signing_bridge.cpp
-)
-
-include_directories(
-        ${PROJECT_SOURCE_DIR}/include
-)
+file(GLOB_RECURSE SOURCE_FILES "modules/core/src/*.cpp")
 
 add_library(${PROJECT_NAME} SHARED
         ${SOURCE_FILES}
 )
 
-prepare_sodium(sodium_lib)
-prepare_znb(znb_lib)
-_prepare_jvm_toolset()
+target_include_directories(${PROJECT_NAME} PUBLIC
+        modules/core/include
+        ${COMMON_INCLUDE_DIRS}
+)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE sodium_lib znb_lib)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+        ${COMMON_LIBRARIES}
+)
 
 set_target_properties(${PROJECT_NAME}
         PROPERTIES
@@ -53,8 +40,8 @@ install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION lib
 )
 
-install(DIRECTORY include/
-        DESTINATION include
+install(DIRECTORY modules/core/include/
+        DESTINATION modules/core/include
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -63,29 +50,25 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
         INSTALL_RPATH "@loader_path"
 )
 
-patch_libs()
+adjust_path()
 
 #------------------------ Tests ------------------------#
 
-prepare_catch2(catch2_lib)
-
 enable_testing()
 
-file(GLOB_RECURSE TEST_SOURCES "src/test/src/*.cpp")
+file(GLOB_RECURSE TEST_SOURCES "tests/src/*.cpp")
 message(STATUS "Found test sources: ${TEST_SOURCES}")
 
 add_executable(${PROJECT_NAME}-tests ${TEST_SOURCES})
 
 target_include_directories(${PROJECT_NAME}-tests PRIVATE
-        ${PROJECT_SOURCE_DIR}/include/
-        ${PROJECT_SOURCE_DIR}/src/test/include
-        sodium_lib
+        tests/include
 )
 
 target_link_libraries(${PROJECT_NAME}-tests PRIVATE
         ${PROJECT_NAME}
-        catch2_lib
-        sodium_lib
+        ${TEST_LIBRARIES}
+        sodium
 )
 
 set_target_properties(${PROJECT_NAME}-tests

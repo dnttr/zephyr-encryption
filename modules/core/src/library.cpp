@@ -4,9 +4,8 @@
 
 #include "ZEKit/library.hpp"
 
-#include "ZNBKit/debug.hpp"
-
 #include <sodium/core.h>
+#include <ZNBKit/debug.hpp>
 
 std::unordered_map<uint64_t, ze_kit::session *> ze_kit::library::sessions;
 

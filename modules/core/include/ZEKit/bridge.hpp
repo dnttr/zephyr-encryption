@@ -5,10 +5,11 @@
 #pragma once
 
 #include <ZNBKit/debug.hpp>
-#include <ZNBKit/jni/internal/wrapper.hpp>
+#include <ZNBKit/internal/wrapper.hpp>
+#include <ZNBKit/vm/vm_management.hpp>
+
 #include "ZEKit/library.hpp"
 #include "ZEKit/security.hpp"
-#include "ZNBKit/vm_management.hpp"
 
 namespace ze_kit
 {

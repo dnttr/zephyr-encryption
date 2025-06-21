@@ -6,8 +6,8 @@
 
 #include <memory>
 
-#include "data.hpp"
-#include "memory.hpp"
+#include "ZEKit/data.hpp"
+#include "ZEKit/memory.hpp"
 
 namespace ze_kit
 {

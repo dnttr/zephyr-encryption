@@ -31,8 +31,6 @@ namespace ze_kit
 
         sodium_memzero(src, size);
         sodium_free(src);
-
-        src = nullptr;
     }
 
     unsigned char *memory::copy(unsigned char *src, const size_t size)

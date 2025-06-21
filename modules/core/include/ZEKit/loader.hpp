@@ -6,7 +6,7 @@
 
 #include <unordered_map>
 
-#include "ZNBKit/vm_object.hpp"
+#include <ZNBKit/vm/vm_object.hpp>
 
 namespace ze_kit
 {

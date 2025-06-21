@@ -4,7 +4,8 @@
 
 #include "ZEKit/guarded_ptr.hpp"
 
-#include "catch2/catch_test_macros.hpp"
+#include <catch2/catch_test_macros.hpp>
+
 #include "ZEKit/data.hpp"
 #include "ZEKit/memory.hpp"
 

@@ -6,8 +6,8 @@
 
 #include <iostream>
 
-#include "setup.hpp"
 #include "ZEKit/memory.hpp"
+#include "ZEKit/setup.hpp"
 
 void generate_str(const char *message, unsigned char **buffer, size_t *buffer_len)
 {

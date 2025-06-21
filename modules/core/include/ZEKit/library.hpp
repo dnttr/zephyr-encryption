@@ -8,7 +8,8 @@
 #define FAILURE 1
 
 #include <unordered_map>
-#include "session.hpp"
+
+#include "ZEKit/session.hpp"
 
 namespace ze_kit
 {

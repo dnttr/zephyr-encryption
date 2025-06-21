@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "guarded_ptr.hpp"
+#include "ZEKit/guarded_ptr.hpp"
 
 /*
  * Word of advice:

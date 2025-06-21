@@ -4,7 +4,8 @@
 
 #include "ZEKit/loader.hpp"
 
-#include "jni.h"
+#include <jni.h>
+#include <ZNBKit/vm/vm_management.hpp>
 
 #include "ZEKit/library.hpp"
 #include "ZEKit/security.hpp"
@@ -13,12 +14,11 @@
 #include "ZEKit/crypto_bridge/exchange_bridge.hpp"
 #include "ZEKit/crypto_bridge/session_bridge.hpp"
 #include "ZEKit/crypto_bridge/signing_bridge.hpp"
-#include "ZNBKit/vm_management.hpp"
 
 const std::unordered_multimap<std::string, znb_kit::jni_bridge_reference> ze_kit::loader::methods = {
-    {"ffi_ze_create_session", znb_kit::jni_bridge_reference(&session_bridge::create_session, {})},
+    {"ffi_ze_create_session", znb_kit::jni_bridge_reference(&session_bridge::create_session)},
     {"ffi_ze_delete_session", znb_kit::jni_bridge_reference(&session_bridge::delete_session, {"long"})},
-    {"ffi_ze_close_library", znb_kit::jni_bridge_reference(&session_bridge::close_library, {})},
+    {"ffi_ze_close_library", znb_kit::jni_bridge_reference(&session_bridge::close_library)},
 
     {"ffi_ze_encrypt_data", znb_kit::jni_bridge_reference(&encryption_bridge::encrypt_data, {"long", "byte[]", "byte[]"})},
     {"ffi_ze_decrypt_data", znb_kit::jni_bridge_reference(&encryption_bridge::decrypt_data, {"long", "byte[]", "byte[]"})},
