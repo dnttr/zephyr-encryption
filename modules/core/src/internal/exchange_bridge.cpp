@@ -2,7 +2,7 @@
 // Created by Damian Netter on 15/06/2025.
 //
 
-#include "ZEKit/crypto_bridge/exchange_bridge.hpp"
+#include "ZEKit/internal/exchange_bridge.hpp"
 
 #include "ZEKit/util.hpp"
 

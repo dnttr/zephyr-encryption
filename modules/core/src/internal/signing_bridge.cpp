@@ -2,7 +2,7 @@
 // Created by Damian Netter on 15/06/2025.
 //
 
-#include "ZEKit/crypto_bridge/signing_bridge.hpp"
+#include "ZEKit/internal/signing_bridge.hpp"
 
 #include "ZEKit/util.hpp"
 

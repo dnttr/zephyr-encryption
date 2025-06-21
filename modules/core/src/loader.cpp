@@ -9,11 +9,11 @@
 
 #include "ZEKit/library.hpp"
 #include "ZEKit/security.hpp"
-#include "ZEKit/crypto_bridge/data_bridge.hpp"
-#include "ZEKit/crypto_bridge/encryption_bridge.hpp"
-#include "ZEKit/crypto_bridge/exchange_bridge.hpp"
-#include "ZEKit/crypto_bridge/session_bridge.hpp"
-#include "ZEKit/crypto_bridge/signing_bridge.hpp"
+#include "ZEKit/internal/data_bridge.hpp"
+#include "ZEKit/internal/encryption_bridge.hpp"
+#include "ZEKit/internal/exchange_bridge.hpp"
+#include "ZEKit/internal/session_bridge.hpp"
+#include "ZEKit/internal/signing_bridge.hpp"
 
 using znb_kit::jni_bridge_reference;
 
@@ -55,7 +55,8 @@ const std::unordered_multimap<std::string, jni_bridge_reference> ze_kit::loader:
     {"ffi_ze_set_nonce", jni_bridge_reference(&data_bridge::set_nonce, { LONG, INT, BYTE_ARRAY })},
 };
 
-const std::string ze_kit::loader::name = "org/dnttr/zephyr/network/bridge/internal/ZEKit";
+//TODO: make it more dynamic. It should be possible to load the class name from a configuration file or similar.
+const std::string ze_kit::loader::name = "org/dnttr/zephyr/bridge/internal/ZEKit";
 
 extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     ze_kit::library::initialize();
@@ -67,16 +68,15 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     ze_kit::vm_object = znb_kit::vm_management::wrap_vm(vm, jvmti_data);
 
     znb_kit::jvmti_object jvmti(ze_kit::vm_object->get_env(), ze_kit::vm_object->get_jvmti()->get().get_owner());
-    const znb_kit::klass_signature *klass = new znb_kit::klass_signature(ze_kit::vm_object->get_env(), ze_kit::loader::name);
 
-    auto [native_methods, size] = jvmti.try_mapping_methods<void>(*klass, ze_kit::loader::methods);
+    const znb_kit::klass_signature klass(ze_kit::vm_object->get_env(), ze_kit::loader::name);
+
+    auto [native_methods, size] = jvmti.try_mapping_methods<void>(klass, ze_kit::loader::methods);
 
     znb_kit::wrapper::register_natives(
         ze_kit::vm_object->get_env(),
         ze_kit::loader::name,
-        klass->get_owner(), native_methods);
-
-    delete klass;
+        klass.get_owner(), native_methods);
 
     return JNI_VERSION_21;
 }

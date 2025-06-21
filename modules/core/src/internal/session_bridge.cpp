@@ -2,7 +2,7 @@
 // Created by Damian Netter on 15/06/2025.
 //
 
-#include "ZEKit/crypto_bridge/session_bridge.hpp"
+#include "ZEKit/internal/session_bridge.hpp"
 
 #include <sodium/randombytes.h>
 
