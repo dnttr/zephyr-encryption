@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31.)
+cmake_minimum_required(VERSION 3.31.6)
 
 project(zephyr-encryption VERSION 1.0.5 LANGUAGES C CXX)
 

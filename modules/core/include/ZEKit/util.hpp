@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <jni.h>
+#include <vector>
 #include <ZNBKit/jni/buffer.hpp>
 
 #include "ZEKit/data.hpp"
